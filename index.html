@@ -9,21 +9,16 @@
     <style>
         body { background-color: #000; font-family: sans-serif; margin: 0; padding: 0; }
         .site-container { background-color: #f3f3f3; max-width: 500px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 20px; }
-        
         .banner-header { width: 100%; height: 130px; overflow: hidden; position: relative; background-color: #000; }
         .banner-img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.2); object-position: center; }
-
         .carousel { position: relative; width: 100%; height: 200px; overflow: hidden; }
         .carousel-item { display: none; width: 100%; height: 100%; object-fit: cover; }
         .carousel-item.active { display: block; }
-        
         .card-artilheiro { background-color: #fff; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; padding-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .price-main { color: #333; font-size: 1.2rem; font-weight: 800; }
         .atacado-box { border-top: 1px solid #d4af37; border-bottom: 1px solid #d4af37; width: 90%; margin: 5px 0; text-align: center; padding: 2px 0; }
-        
         .btn-dourado { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); color: #000; border: none; font-weight: 900; transition: 0.3s; }
         .btn-dourado:active { transform: scale(0.95); filter: brightness(1.2); }
-
         .size-box { border: 1px solid #333; width: 28px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; cursor: pointer; background: white; color: black; }
         .size-selected { background-color: #000 !important; color: #fff !important; }
         .size-off { border: 1px solid #ddd !important; color: #ccc !important; position: relative; cursor: not-allowed !important; pointer-events: none; }
@@ -67,15 +62,13 @@
                 <h2 class="font-bold uppercase tracking-tighter">🛒 Meu Carrinho</h2>
                 <button onclick="toggleCart()" class="text-3xl">&times;</button>
             </div>
-            
             <div id="cart-items-list" class="flex-1 overflow-y-auto p-4 space-y-6"></div>
-
             <div class="p-4 border-t bg-gray-50">
                 <div class="flex justify-between font-black text-lg mb-4">
                     <span>TOTAL:</span>
                     <span id="cart-total-value">R$ 0,00</span>
                 </div>
-                <button onclick="enviarWhatsApp()" class="w-full bg-[#28a745] text-white py-4 rounded font-black uppercase text-sm shadow-lg">Finalizar no WhatsApp</button>
+                <button id="btn-finalizar" onclick="enviarWhatsApp()" class="w-full bg-[#28a745] text-white py-4 rounded font-black uppercase text-sm shadow-lg disabled:bg-gray-400">Finalizar no WhatsApp</button>
             </div>
         </div>
     </div>
@@ -83,8 +76,11 @@
 
 <script>
     const linkPlanilha = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0m7HN1ePfdwVgr0aaFfYjjFv6r1zag8fZ4x5Ih8XKPLjEIe97nRHqU-hWKWfBEksbOH5Mw8u2Y6VZ/pub?output=csv";
+    
+    // ATENÇÃO: COLOQUE SUA URL DO GOOGLE APPS SCRIPT AQUI ABAIXO
+    const urlScriptGoogle = "https://script.google.com/macros/s/AKfycbwe4-Fw5VEuCew9ow6YNuUB7vWner3dU18qPfu_gH7ReLB1FnTFIZ3U_HLodpv1_JCv/exec";
 
-    let produtosData = []; // Armazena os dados dos produtos para conferir estoque
+    let produtosData = [];
     let carrinho = [];
     let selecoesTemporarias = {};
 
@@ -100,7 +96,6 @@
             linhas.forEach(linha => {
                 const col = linha.split(',');
                 if(col.length < 5) return;
-
                 const prod = {
                     id: col[0].trim(),
                     nome: col[1].trim(),
@@ -114,12 +109,9 @@
                         GG: parseInt(col[8]) || 0 
                     }
                 };
-                
                 produtosData.push(prod);
-
                 let tamanhosHTML = "";
                 let estoqueTotal = 0;
-
                 for (let tam in prod.estoque) {
                     const qtd = prod.estoque[tam];
                     estoqueTotal += qtd;
@@ -129,7 +121,6 @@
                         tamanhosHTML += `<button class="size-box size-off">${tam}</button>`;
                     }
                 }
-
                 if (estoqueTotal > 0) {
                     grid.innerHTML += `
                         <div class="card-artilheiro" id="${prod.id}">
@@ -175,30 +166,19 @@
     function adicionarAoCarrinho(produtoId) {
         const produtoInfo = produtosData.find(p => p.id === produtoId);
         const tamanho = selecoesTemporarias[produtoId];
-        
         if (!tamanho) { alert("⚠️ Selecione o TAMANHO!"); return; }
-
         const estoqueDisponivel = produtoInfo.estoque[tamanho];
         const indexCarrinho = carrinho.findIndex(item => item.id === produtoId && item.tamanho === tamanho);
         const qtdNoCarrinho = indexCarrinho !== -1 ? carrinho[indexCarrinho].qtd : 0;
-
         if (qtdNoCarrinho + 1 > estoqueDisponivel) {
-            alert(`❌ Desculpe! Só temos ${estoqueDisponivel} unidades do tamanho ${tamanho} em estoque.`);
+            alert(`❌ Desculpe! Só temos ${estoqueDisponivel} unidades do tamanho ${tamanho}.`);
             return;
         }
-
         if (indexCarrinho !== -1) {
             carrinho[indexCarrinho].qtd++;
         } else {
-            carrinho.push({ 
-                id: produtoId, 
-                nome: produtoInfo.nome, 
-                tamanho: tamanho, 
-                preco: produtoInfo.preco, 
-                qtd: 1 
-            });
+            carrinho.push({ id: produtoId, nome: produtoInfo.nome, tamanho: tamanho, preco: produtoInfo.preco, qtd: 1 });
         }
-
         atualizarContador();
         alert("✅ Adicionado!");
     }
@@ -212,17 +192,12 @@
         const item = carrinho[index];
         const produtoInfo = produtosData.find(p => p.id === item.id);
         const estoqueMax = produtoInfo.estoque[item.tamanho];
-
         if (delta > 0 && item.qtd + delta > estoqueMax) {
             alert("⚠️ Limite de estoque atingido!");
             return;
         }
-
         item.qtd += delta;
-        if (item.qtd <= 0) {
-            carrinho.splice(index, 1);
-        }
-        
+        if (item.qtd <= 0) carrinho.splice(index, 1);
         atualizarContador();
         renderizarCarrinho();
     }
@@ -231,13 +206,10 @@
         const lista = document.getElementById('cart-items-list');
         const totalElement = document.getElementById('cart-total-value');
         let totalGeral = 0;
-
         lista.innerHTML = carrinho.length === 0 ? '<p class="text-center text-gray-400 mt-10">Carrinho vazio</p>' : '';
-
         carrinho.forEach((item, index) => {
             const subtotal = item.preco * item.qtd;
             totalGeral += subtotal;
-
             lista.innerHTML += `
                 <div class="flex justify-between items-center border-b pb-4">
                     <div class="flex-1">
@@ -245,7 +217,6 @@
                         <p class="text-red-600 text-[10px] font-bold">TAM: ${item.tamanho}</p>
                         <p class="text-gray-500 text-[11px]">R$ ${item.preco.toFixed(2)} un.</p>
                     </div>
-                    
                     <div class="flex items-center gap-3">
                         <div class="flex items-center border rounded bg-gray-100">
                             <button onclick="alterarQtd(${index}, -1)" class="px-2 py-1 text-black font-bold border-r">-</button>
@@ -255,14 +226,29 @@
                     </div>
                 </div>`;
         });
-
         totalElement.innerText = `R$ ${totalGeral.toFixed(2)}`;
     }
 
-    function enviarWhatsApp() {
+    async function enviarWhatsApp() {
         if (carrinho.length === 0) return;
+        const btn = document.getElementById('btn-finalizar');
+
+        // 1. Débito no estoque (Google Sheets)
+        try {
+            btn.innerText = "PROCESSANDO ESTOQUE...";
+            btn.disabled = true;
+            await fetch(urlScriptGoogle, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ carrinho: carrinho })
+            });
+        } catch (error) {
+            console.error("Erro ao debitar:", error);
+        }
+
+        // 2. Envio WhatsApp
         let totalGeral = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
-        
         let msg = "🚀 *NOVO PEDIDO - IMPÉRIO DO MANTO*\n\n";
         carrinho.forEach((item, i) => {
             msg += `*${i+1}.* ${item.nome}\n`;
@@ -272,6 +258,13 @@
         msg += `🔥 *TOTAL: R$ ${totalGeral.toFixed(2)}*`;
         
         window.location.href = `https://wa.me/5521986285970?text=${encodeURIComponent(msg)}`;
+        
+        // Limpar carrinho após finalizar
+        carrinho = [];
+        atualizarContador();
+        toggleCart();
+        btn.innerText = "Finalizar no WhatsApp";
+        btn.disabled = false;
     }
 
     carregarProdutos();
