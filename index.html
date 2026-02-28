@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Império do Manto | Camisas Tailandesas 1:1</title>
+    <title>Brazuka 1.1 | Camisas Tailandesas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -24,7 +24,6 @@
         .size-off { border: 1px solid #ddd !important; color: #ccc !important; position: relative; cursor: not-allowed !important; pointer-events: none; }
         .size-off::after { content: ""; position: absolute; width: 100%; height: 1px; background: #ccc; transform: rotate(-45deg); }
         
-        /* Estilo do campo de CEP */
         .cep-input { border: 1px solid #ccc; padding: 8px; border-radius: 4px; width: 100%; font-size: 14px; outline: none; }
         .cep-input:focus { border-color: #bf953f; }
     </style>
@@ -33,7 +32,7 @@
 
 <div class="site-container">
     <header class="banner-header sticky top-0 z-50 border-b border-yellow-600 shadow-xl">
-        <img src="banner-topo.png" alt="Império do Manto" class="banner-img">
+        <img src="banner-topo.png" alt="Brazuka 1.1" class="banner-img">
         <button onclick="toggleCart()" class="absolute right-3 top-3 bg-black/60 p-2 rounded-full border border-white/20">
             <i class="fas fa-shopping-cart text-xl text-white"></i>
             <span id="cart-count" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded-full px-1.5 py-0.5 font-bold">0</span>
@@ -55,7 +54,7 @@
     </div>
 
     <footer class="bg-white border-t mt-6 p-6 text-black text-center">
-        <h4 class="font-black uppercase text-sm mb-2">Império do Manto</h4>
+        <h4 class="font-black uppercase text-sm mb-2">Brazuka 1.1</h4>
         <p class="text-xs text-gray-600 mb-4"><i class="fab fa-whatsapp"></i> 5521986285970</p>
         <p class="text-[10px] text-gray-400">© 2026 Todos os direitos reservados.</p>
     </footer>
@@ -165,15 +164,10 @@
         } catch (e) { console.error(e); }
     }
 
-    // Lógica de Frete Simulado (Para integrar com API SuperFrete depois)
     function calcularFreteSimulado() {
         const cep = document.getElementById('cep-destino').value;
         if(cep.length < 8) { alert("Digite um CEP válido"); return; }
-        
-        // Simulação: Frete fixo ou baseado em região fictícia
-        // Em uma integração real, você faria um fetch para sua API aqui
         valorFreteGlobal = 25.00; 
-        
         document.getElementById('resultado-frete').classList.remove('hidden');
         document.getElementById('info-frete').innerText = `🚚 SuperFrete: R$ ${valorFreteGlobal.toFixed(2)} (3-7 dias úteis)`;
         renderizarCarrinho();
@@ -290,7 +284,8 @@
         } catch (error) { console.error(error); }
 
         let subtotal = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
-        let msg = "🚀 *NOVO PEDIDO - IMPÉRIO DO MANTO*\n\n";
+        // NOME ATUALIZADO NA MENSAGEM DO WHATSAPP
+        let msg = "🚀 *NOVO PEDIDO - BRAZUKA 1.1*\n\n";
         carrinho.forEach((item, i) => {
             msg += `*${i+1}.* ${item.nome}\n`;
             msg += `   📦 TAM: ${item.tamanho} | Qtd: ${item.qtd}\n\n`;
