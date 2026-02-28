@@ -79,7 +79,7 @@
                 <label class="text-[10px] font-bold uppercase text-gray-500 mb-1 block">Calcular Frete (SuperFrete):</label>
                 <div class="flex gap-2">
                     <input type="text" id="cep-destino" placeholder="00000-000" class="cep-input" maxlength="9">
-                    <button onclick="calcularFreteSimulado()" class="bg-black text-white px-4 rounded text-xs font-bold uppercase">Calcular</button>
+                    <button id="btn-calc-frete" onclick="calcularFreteReal()" class="bg-black text-white px-4 rounded text-xs font-bold uppercase">Calcular</button>
                 </div>
                 <div id="resultado-frete" class="mt-2 hidden">
                     <p class="text-[11px] font-bold text-green-700" id="info-frete"></p>
@@ -171,12 +171,10 @@
         } catch (e) { console.error(e); }
     }
 
-    // NOVA FUNÇÃO DE FILTRO
     function filtrarProdutos() {
         const termo = document.getElementById('input-busca').value.toLowerCase();
         const produtos = document.querySelectorAll('.item-produto');
         let encontrados = 0;
-
         produtos.forEach(prod => {
             const nome = prod.getAttribute('data-nome');
             if (nome.includes(termo)) {
@@ -186,26 +184,84 @@
                 prod.style.display = "none";
             }
         });
-
-        // Opcional: remover mensagem de erro anterior se houver
         const grid = document.getElementById('grid-produtos');
         const msgErro = document.getElementById('msg-vazia');
         if (encontrados === 0) {
-            if (!msgErro) {
-                grid.insertAdjacentHTML('afterend', '<p id="msg-vazia" class="text-center text-gray-500 py-10">Nenhum produto encontrado.</p>');
-            }
+            if (!msgErro) grid.insertAdjacentHTML('afterend', '<p id="msg-vazia" class="text-center text-gray-500 py-10">Nenhum produto encontrado.</p>');
         } else {
             if (msgErro) msgErro.remove();
         }
     }
 
-    function calcularFreteSimulado() {
-        const cep = document.getElementById('cep-destino').value;
-        if(cep.length < 8) { alert("Digite um CEP válido"); return; }
-        valorFreteGlobal = 25.00; 
-        document.getElementById('resultado-frete').classList.remove('hidden');
-        document.getElementById('info-frete').innerText = `🚚 SuperFrete: R$ ${valorFreteGlobal.toFixed(2)} (3-7 dias úteis)`;
-        renderizarCarrinho();
+    // --- INTEGRAÇÃO REAL SUPERFRETE ---
+    async function calcularFreteReal() {
+        const cepDestino = document.getElementById('cep-destino').value.replace(/\D/g, '');
+        const btnFrete = document.getElementById('btn-calc-frete');
+        const infoFrete = document.getElementById('info-frete');
+        const resultadoDiv = document.getElementById('resultado-frete');
+
+        if (cepDestino.length !== 8) {
+            alert("Digite um CEP válido com 8 dígitos.");
+            return;
+        }
+
+        btnFrete.innerText = "CALCULANDO...";
+        btnFrete.disabled = true;
+
+        const MEU_CEP_ORIGEM = "25956568"; 
+        const MEU_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzIyOTk3NTYsInN1YiI6InlzczNtNDVaTkxYVW52eFI3OHdaZ2g1ZjdoSTMifQ.aSkACfz-gzbbXaUQFvJKQq9wo0pxcsL_4sOn_qIg-T8";
+        
+        const totalItens = carrinho.reduce((sum, item) => sum + item.qtd, 0);
+        const pesoTotal = (totalItens || 1) * 0.3;
+
+        const dadosFrete = {
+            "from": MEU_CEP_ORIGEM,
+            "to": cepDestino,
+            "services": "1,2,17", 
+            "options": {
+                "width": 20,
+                "height": 10,
+                "length": 25,
+                "weight": pesoTotal
+            }
+        };
+
+        try {
+            // Usando proxy para evitar erro de CORS no GitHub Pages
+            const response = await fetch('https://cors-anywhere.herokuapp.com/https://api.superfrete.com/v1/calculator', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${MEU_TOKEN}`
+                },
+                body: JSON.stringify(dadosFrete)
+            });
+
+            if (response.status === 403) {
+                alert("Atenção: Para o frete funcionar, você precisa ativar o acesso temporário em: https://cors-anywhere.herokuapp.com/corsdemo");
+                window.open('https://cors-anywhere.herokuapp.com/corsdemo', '_blank');
+                return;
+            }
+
+            const data = await response.json();
+            const opcoesValidas = data.filter(s => !s.error);
+            
+            if (opcoesValidas.length > 0) {
+                const melhorOpcao = opcoesValidas[0];
+                valorFreteGlobal = parseFloat(melhorOpcao.price);
+                resultadoDiv.classList.remove('hidden');
+                infoFrete.innerText = `🚚 ${melhorOpcao.name}: R$ ${valorFreteGlobal.toFixed(2)} (${melhorOpcao.delivery} dias)`;
+            } else {
+                alert("Nenhum serviço disponível para este CEP.");
+            }
+            renderizarCarrinho();
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao calcular. Finalize pelo WhatsApp.");
+        } finally {
+            btnFrete.innerText = "CALCULAR";
+            btnFrete.disabled = false;
+        }
     }
 
     let slideIndex = 0;
