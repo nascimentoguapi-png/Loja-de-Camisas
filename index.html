@@ -110,7 +110,6 @@
 
 <script>
     const linkPlanilha = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0m7HN1ePfdwVgr0aaFfYjjFv6r1zag8fZ4x5Ih8XKPLjEIe97nRHqU-hWKWfBEksbOH5Mw8u2Y6VZ/pub?output=csv";
-    const urlScriptGoogle = "https://script.google.com/macros/s/AKfycbwe4-Fw5VEuCew9ow6YNuUB7vWner3dU18qPfu_gH7ReLB1FnTFIZ3U_HLodpv1_JCv/exec";
     const URL_WORKER_FRETE = "https://frete-brazuka.brazukaoficial1-1.workers.dev/";
 
     let produtosData = [];
@@ -167,10 +166,14 @@
         });
     }
 
+    // FUNÇÃO DE FRETE CORRIGIDA COM SUPORTE A CORS
     async function calcularFreteWorker() {
         const cepDestino = document.getElementById('cep-destino').value.replace(/\D/g, '');
         const btn = document.getElementById('btn-calc-frete');
-        if (cepDestino.length !== 8) { alert("CEP inválido"); return; }
+        const infoFrete = document.getElementById('info-frete');
+        const resultadoDiv = document.getElementById('resultado-frete');
+
+        if (cepDestino.length !== 8) { alert("Digite um CEP válido."); return; }
         
         btn.innerText = "Calculando...";
         btn.disabled = true;
@@ -181,6 +184,8 @@
         try {
             const response = await fetch(URL_WORKER_FRETE, {
                 method: 'POST',
+                mode: 'cors', // Adicionado para evitar erro de conexão
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     "from": "25956568",
                     "to": cepDestino,
@@ -188,16 +193,27 @@
                     "options": { "width": 20, "height": 10, "length": 25, "weight": pesoTotal }
                 })
             });
+
+            if (!response.ok) throw new Error("Erro no servidor");
+
             const data = await response.json();
-            const opcao = data.find(s => !s.error);
+            const opcao = Array.isArray(data) ? data.find(s => !s.error) : null;
+
             if (opcao) {
                 valorFreteGlobal = parseFloat(opcao.price);
-                document.getElementById('resultado-frete').classList.remove('hidden');
-                document.getElementById('info-frete').innerText = `🚚 ${opcao.name}: R$ ${valorFreteGlobal.toFixed(2)} (${opcao.delivery} dias)`;
+                resultadoDiv.classList.remove('hidden');
+                infoFrete.innerText = `🚚 ${opcao.name}: R$ ${valorFreteGlobal.toFixed(2)} (${opcao.delivery} dias)`;
                 renderizarCarrinho();
-            } else { alert("Erro no cálculo do frete."); }
-        } catch (e) { alert("Erro na conexão com o frete."); }
-        finally { btn.innerText = "Calcular"; btn.disabled = false; }
+            } else { 
+                alert("CEP não atendido ou erro nos dados."); 
+            }
+        } catch (e) { 
+            console.error(e);
+            alert("Erro de conexão com o frete. Tente novamente."); 
+        } finally { 
+            btn.innerText = "Calcular"; 
+            btn.disabled = false; 
+        }
     }
 
     function renderizarCarrinho() {
@@ -229,6 +245,7 @@
         if (subtotal > 0) {
             document.getElementById('pix-discount-row').classList.remove('hidden');
             document.getElementById('pix-discount-value').innerText = `- R$ ${descontoPix.toFixed(2)}`;
+            // TOTAL = Subtotal + Frete
             document.getElementById('cart-total-value').innerText = `R$ ${(subtotal + valorFreteGlobal).toFixed(2)}`;
         } else {
             document.getElementById('pix-discount-row').classList.add('hidden');
@@ -236,7 +253,6 @@
         }
     }
 
-    // Funções auxiliares (Iguais às anteriores)
     function selecionarTamanho(botao, id) {
         document.getElementById(id).querySelectorAll('.size-box').forEach(b => b.classList.remove('size-selected'));
         botao.classList.add('size-selected');
@@ -264,9 +280,15 @@
         if (carrinho.length === 0) return;
         let subtotal = carrinho.reduce((s, i) => s + (i.preco * i.qtd), 0);
         let totalFinal = subtotal + valorFreteGlobal;
+        let totalPix = (subtotal * 0.9) + valorFreteGlobal; // Desconto de 10% apenas no produto
+        
         let msg = "🚀 *NOVO PEDIDO - BRAZUKA 1.1*\n\n";
         carrinho.forEach((item, i) => msg += `*${i+1}.* ${item.nome} (TAM: ${item.tamanho} | Qtd: ${item.qtd})\n`);
-        msg += `\n💰 Subtotal: R$ ${subtotal.toFixed(2)}\n🚚 Frete: R$ ${valorFreteGlobal.toFixed(2)}\n⚡ *Total: R$ ${totalFinal.toFixed(2)}*\n🔥 *PIX (10% OFF): R$ ${(totalFinal - (subtotal * 0.1)).toFixed(2)}*`;
+        msg += `\n💰 Subtotal: R$ ${subtotal.toFixed(2)}`;
+        msg += `\n🚚 Frete: R$ ${valorFreteGlobal.toFixed(2)}`;
+        msg += `\n⚡ *Total: R$ ${totalFinal.toFixed(2)}*`;
+        msg += `\n\n🔥 *PAGANDO NO PIX (10% OFF): R$ ${totalPix.toFixed(2)}*`;
+        
         window.open(`https://wa.me/5521986285970?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
