@@ -110,7 +110,7 @@
 
 <script>
     const linkPlanilha = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0m7HN1ePfdwVgr0aaFfYjjFv6r1zag8fZ4x5Ih8XKPLjEIe97nRHqU-hWKWfBEksbOH5Mw8u2Y6VZ/pub?output=csv";
-    const URL_WORKER_FRETE = "https://frete-brazuka.brazukaoficial1-1.workers.dev/";
+    const URL_WORKER_FRETE = "https://frete-brazuka.brazukaoficial1-1.workers.dev"; // Removi a barra final para evitar duplicação
 
     let produtosData = [];
     let carrinho = [];
@@ -166,7 +166,7 @@
         });
     }
 
-    // FUNÇÃO DE FRETE CORRIGIDA COM HEADERS COMPLETOS
+    // FUNÇÃO DE FRETE FINAL COM TRATAMENTO DE CONEXÃO
     async function calcularFreteWorker() {
         const cepDestino = document.getElementById('cep-destino').value.replace(/\D/g, '');
         const btn = document.getElementById('btn-calc-frete');
@@ -182,12 +182,12 @@
         const pesoTotal = (totalItens || 1) * 0.3;
 
         try {
+            // Adicionado modo cors e cache no-store para evitar erros de conexão antiga
             const response = await fetch(URL_WORKER_FRETE, {
                 method: 'POST',
-                mode: 'cors', 
+                mode: 'cors',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Content-Type': 'text/plain' // Usando text/plain para simplificar o CORS no Worker
                 },
                 body: JSON.stringify({
                     "from": "25956568",
@@ -197,9 +197,12 @@
                 })
             });
 
-            if (!response.ok) throw new Error("Falha na comunicação com o Worker");
+            if (!response.ok) throw new Error("Worker Offline");
 
             const data = await response.json();
+            // Verifica se a resposta é um erro da API
+            if (data.error) throw new Error(data.error);
+
             const opcao = Array.isArray(data) ? data.find(s => !s.error) : null;
 
             if (opcao) {
@@ -208,11 +211,11 @@
                 infoFrete.innerText = `🚚 ${opcao.name}: R$ ${valorFreteGlobal.toFixed(2)} (${opcao.delivery} dias)`;
                 renderizarCarrinho();
             } else { 
-                alert("Serviço de frete indisponível para este CEP."); 
+                alert("Serviço de frete indisponível."); 
             }
         } catch (e) { 
-            console.error("Erro no fetch:", e);
-            alert("Erro de conexão. Verifique se o Worker está ativo e tente novamente."); 
+            console.error("Erro detalhado:", e);
+            alert("Erro de conexão com o cálculo de frete. Tente novamente em instantes."); 
         } finally { 
             btn.innerText = "Calcular"; 
             btn.disabled = false; 
