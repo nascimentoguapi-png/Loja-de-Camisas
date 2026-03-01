@@ -83,11 +83,18 @@
             </div>
 
             <div class="p-4 bg-gray-50">
-                <div id="aviso-atacado" class="text-[10px] text-center font-bold text-yellow-700 mb-2 hidden">🔥 ATACADO APLICADO (Mín. 4 un.)</div>
+                <div id="aviso-atacado" class="text-[10px] text-center font-bold text-green-700 mb-2 hidden">🔥 MODO ATACADO ATIVADO!</div>
+                
                 <div class="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Total Pedido:</span>
+                    <span>Subtotal Camisas:</span>
                     <span id="subtotal-value">R$ 0,00</span>
                 </div>
+
+                <div id="economia-row" class="flex justify-between text-xs text-green-600 font-bold mb-1 hidden">
+                    <span>Você está economizando:</span>
+                    <span id="economia-value">R$ 0,00</span>
+                </div>
+
                 <div class="flex justify-between font-black text-lg mb-4 border-t pt-2">
                     <span>TOTAL:</span>
                     <span id="cart-total-value">R$ 0,00</span>
@@ -157,24 +164,27 @@
     function renderizarCarrinho() {
         const lista = document.getElementById('cart-items-list');
         const avisoAtacado = document.getElementById('aviso-atacado');
+        const economiaRow = document.getElementById('economia-row');
+        const economiaValue = document.getElementById('economia-value');
+        
         let totalFinal = 0;
+        let totalVarejoSimulado = 0;
         let qtdTotal = carrinho.reduce((s, i) => s + i.qtd, 0);
         let eAtacado = qtdTotal >= 4;
 
         lista.innerHTML = carrinho.length === 0 ? '<p class="text-center text-gray-400 mt-10">Carrinho vazio</p>' : '';
         
         carrinho.forEach((item, index) => {
-            // Define o preço com base na quantidade total do carrinho [cite: 2026-03-01]
             let precoUnitario = eAtacado ? item.precoAtacado : item.precoVarejo;
-            let subtotalItem = precoUnitario * item.qtd;
-            totalFinal += subtotalItem;
+            totalFinal += precoUnitario * item.qtd;
+            totalVarejoSimulado += item.precoVarejo * item.qtd;
 
             lista.innerHTML += `
                 <div class="flex justify-between items-center border-b pb-4">
                     <div class="flex-1">
                         <p class="font-black text-[11px] uppercase">${item.nome}</p>
                         <p class="text-red-600 text-[10px] font-bold">TAM: ${item.tamanho}</p>
-                        <p class="text-gray-500 text-[11px]">R$ ${precoUnitario.toFixed(2)} un. ${eAtacado ? '(Atacado)' : ''}</p>
+                        <p class="text-gray-500 text-[11px]">R$ ${precoUnitario.toFixed(2)} un. ${eAtacado ? '<span class="text-green-600 font-bold">(Atacado)</span>' : ''}</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <button onclick="alterarQtd(${index}, -1)" class="px-2 bg-gray-200">-</button>
@@ -184,8 +194,17 @@
                 </div>`;
         });
 
-        if (eAtacado) avisoAtacado.classList.remove('hidden');
-        else avisoAtacado.classList.add('hidden');
+        // Cálculo da economia
+        const economia = totalVarejoSimulado - totalFinal;
+
+        if (eAtacado && economia > 0) {
+            avisoAtacado.classList.remove('hidden');
+            economiaRow.classList.remove('hidden');
+            economiaValue.innerText = `R$ ${economia.toFixed(2)}`;
+        } else {
+            avisoAtacado.classList.add('hidden');
+            economiaRow.classList.add('hidden');
+        }
 
         document.getElementById('subtotal-value').innerText = `R$ ${totalFinal.toFixed(2)}`;
         document.getElementById('cart-total-value').innerText = `R$ ${totalFinal.toFixed(2)}`;
@@ -234,19 +253,26 @@
         let qtdTotal = carrinho.reduce((s, i) => s + i.qtd, 0);
         let eAtacado = qtdTotal >= 4;
         let totalFinal = 0;
+        let totalVarejoSimulado = 0;
         
         let msg = "🚀 *NOVO PEDIDO - BRAZUKA 1.1*\n\n";
         msg += eAtacado ? "🔥 *MODO ATACADO ATIVADO* 🔥\n\n" : "🛒 *MODO VAREJO*\n\n";
         
         msg += "--- *ITENS* ---\n";
-        carrinho.forEach((item, i) => {
+        carrinho.forEach((item) => {
             let precoUnit = eAtacado ? item.precoAtacado : item.precoVarejo;
             totalFinal += precoUnit * item.qtd;
+            totalVarejoSimulado += item.precoVarejo * item.qtd;
             msg += `✅ ${item.qtd}x ${item.nome} (TAM: ${item.tamanho}) - R$ ${precoUnit.toFixed(2)} un.\n`;
         });
         
+        let economia = totalVarejoSimulado - totalFinal;
+
         msg += `\n--- *TOTAL DO PEDIDO* ---`;
-        msg += `\n💰 Valor Total: R$ ${totalFinal.toFixed(2)}`;
+        msg += `\n💰 Valor: R$ ${totalFinal.toFixed(2)}`;
+        if(eAtacado && economia > 0) {
+            msg += `\n🎁 *Economia de Atacado: R$ ${economia.toFixed(2)}*`;
+        }
         msg += `\n📍 *CEP de Entrega:* ${cepInformado}`;
         msg += `\n\n⚠️ _Por favor, me informe o valor do frete para eu finalizar o pagamento!_`;
         
