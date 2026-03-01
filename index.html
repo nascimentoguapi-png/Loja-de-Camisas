@@ -131,7 +131,6 @@
 </div>
 
 <script>
-    // URL DO SEU GOOGLE APPS SCRIPT
     const URL_SCRIPT_ESTOQUE = "AKfycbwe4-Fw5VEuCew9ow6YNuUB7vWner3dU18qPfu_gH7ReLB1FnTFIZ3U_HLodpv1_JCv";
     const linkPlanilha = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0m7HN1ePfdwVgr0aaFfYjjFv6r1zag8fZ4x5Ih8XKPLjEIe97nRHqU-hWKWfBEksbOH5Mw8u2Y6VZ/pub?output=csv";
     
@@ -268,24 +267,25 @@
         if (!cep) { alert("Informe o CEP!"); return; }
 
         const btn = document.getElementById('btn-finalizar');
-        const originalText = btn.innerText;
         btn.innerText = "PROCESSANDO...";
         btn.disabled = true;
 
-        // 1. Enviar baixa de estoque para a planilha
         try {
-            const dadosVenda = { itens: carrinho.map(i => ({ id: i.id, tamanho: i.tamanho, qtd: i.qtd })) };
+            const dadosVenda = { 
+                itens: carrinho.map(i => ({ id: i.id, tamanho: i.tamanho, qtd: i.qtd })) 
+            };
+            
+            // Alterado para 'text/plain' para evitar bloqueios de CORS no Google Apps Script
             await fetch(URL_SCRIPT_ESTOQUE, {
                 method: 'POST',
                 mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify(dadosVenda)
             });
         } catch (e) {
             console.error("Erro ao atualizar estoque:", e);
         }
 
-        // 2. Montar mensagem do WhatsApp
         let qtdT = carrinho.reduce((s, i) => s + i.qtd, 0);
         let eAtacado = qtdT >= 4, totalF = 0, totalV = 0;
         let msg = `🚀 *PEDIDO BRAZUKA 1.1*\n\n`;
@@ -296,13 +296,12 @@
         });
         msg += `\n💰 *Total: R$ ${totalF.toFixed(2)}*\n🎁 Economia: R$ ${(totalV-totalF).toFixed(2)}\n📍 CEP: ${cep}`;
         
-        // 3. Abrir WhatsApp e dar Refresh
         window.open(`https://wa.me/5521986285970?text=${encodeURIComponent(msg)}`);
         
-        alert("Pedido enviado! Atualizando estoque...");
+        alert("Pedido enviado! O estoque será atualizado.");
         setTimeout(() => {
             location.reload();
-        }, 1500);
+        }, 1000);
     }
 
     carregarProdutos();
