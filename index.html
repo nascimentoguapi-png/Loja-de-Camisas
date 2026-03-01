@@ -75,11 +75,11 @@
             <div id="cart-items-list" class="flex-1 overflow-y-auto p-4 space-y-6"></div>
 
             <div class="p-4 bg-gray-100 border-t border-b">
-                <label class="text-[10px] font-bold uppercase text-gray-500 mb-1 block">Valor do Frete Combinado (R$):</label>
+                <label class="text-[10px] font-bold uppercase text-gray-500 mb-1 block">Informe seu CEP para o frete:</label>
                 <div class="flex gap-2">
-                    <input type="number" id="frete-manual-input" placeholder="Ex: 25.00" class="cep-input" oninput="atualizarValorFrete()">
+                    <input type="text" id="cep-destino" placeholder="00000-000" class="cep-input" maxlength="9">
                 </div>
-                <p class="text-[9px] text-gray-400 mt-1">*Digite o valor para atualizar o total.</p>
+                <p class="text-[9px] text-gray-400 mt-1">*Calcularemos o melhor frete após o envio do pedido.</p>
             </div>
 
             <div class="p-4 bg-gray-50">
@@ -87,19 +87,15 @@
                     <span>Subtotal:</span>
                     <span id="subtotal-value">R$ 0,00</span>
                 </div>
-                <div class="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Frete:</span>
-                    <span id="frete-value">R$ 0,00</span>
-                </div>
                 <div id="pix-discount-row" class="flex justify-between text-xs text-green-600 font-bold mb-2 hidden">
                     <span>Desconto PIX (10%):</span>
                     <span id="pix-discount-value">- R$ 0,00</span>
                 </div>
                 <div class="flex justify-between font-black text-lg mb-4 border-t pt-2">
-                    <span>TOTAL:</span>
+                    <span>TOTAL (sem frete):</span>
                     <span id="cart-total-value">R$ 0,00</span>
                 </div>
-                <button id="btn-finalizar" onclick="enviarWhatsApp()" class="w-full bg-[#28a745] text-white py-4 rounded font-black uppercase text-sm shadow-lg disabled:bg-gray-400">Finalizar no WhatsApp</button>
+                <button id="btn-finalizar" onclick="enviarWhatsApp()" class="w-full bg-[#28a745] text-white py-4 rounded font-black uppercase text-sm shadow-lg disabled:bg-gray-400">Enviar Pedido para Orçamento</button>
             </div>
         </div>
     </div>
@@ -111,7 +107,6 @@
     let produtosData = [];
     let carrinho = [];
     let selecoesTemporarias = {};
-    let valorFreteGlobal = 0;
 
     async function carregarProdutos() {
         try {
@@ -162,19 +157,6 @@
         });
     }
 
-    // NOVA FUNÇÃO DE FRETE MANUAL [cite: 2026-03-01]
-    function atualizarValorFrete() {
-        const inputFrete = document.getElementById('frete-manual-input');
-        const valorDigitado = parseFloat(inputFrete.value);
-
-        if (!isNaN(valorDigitado) && valorDigitado >= 0) {
-            valorFreteGlobal = valorDigitado;
-        } else {
-            valorFreteGlobal = 0;
-        }
-        renderizarCarrinho();
-    }
-
     function renderizarCarrinho() {
         const lista = document.getElementById('cart-items-list');
         let subtotal = 0;
@@ -199,12 +181,11 @@
 
         const descontoPix = subtotal * 0.10;
         document.getElementById('subtotal-value').innerText = `R$ ${subtotal.toFixed(2)}`;
-        document.getElementById('frete-value').innerText = `R$ ${valorFreteGlobal.toFixed(2)}`;
         
         if (subtotal > 0) {
             document.getElementById('pix-discount-row').classList.remove('hidden');
             document.getElementById('pix-discount-value').innerText = `- R$ ${descontoPix.toFixed(2)}`;
-            document.getElementById('cart-total-value').innerText = `R$ ${(subtotal + valorFreteGlobal).toFixed(2)}`;
+            document.getElementById('cart-total-value').innerText = `R$ ${subtotal.toFixed(2)}`;
         } else {
             document.getElementById('pix-discount-row').classList.add('hidden');
             document.getElementById('cart-total-value').innerText = `R$ 0,00`;
@@ -235,25 +216,25 @@
     setInterval(() => moveSlide(1), 5000);
 
     async function enviarWhatsApp() {
-        if (carrinho.length === 0) return;
+        if (carrinho.length === 0) { alert("Adicione itens!"); return; }
+        
+        const cepInformado = document.getElementById('cep-destino').value;
+        if (!cepInformado) { alert("Por favor, informe seu CEP para o cálculo do frete."); return; }
+
         let subtotal = carrinho.reduce((s, i) => s + (i.preco * i.qtd), 0);
-        let totalFinal = subtotal + valorFreteGlobal;
-        let totalPix = (subtotal * 0.9) + valorFreteGlobal;
+        let totalPix = (subtotal * 0.9);
         
         let msg = "🚀 *NOVO PEDIDO - BRAZUKA 1.1*\n\n";
         msg += "--- *ITENS* ---\n";
         carrinho.forEach((item, i) => msg += `✅ ${item.qtd}x ${item.nome} (TAM: ${item.tamanho})\n`);
         
         msg += `\n--- *VALORES* ---`;
-        msg += `\n💰 Subtotal: R$ ${subtotal.toFixed(2)}`;
-        msg += `\n🚚 Frete Combinado: R$ ${valorFreteGlobal.toFixed(2)}`;
-        msg += `\n⚡ *TOTAL: R$ ${totalFinal.toFixed(2)}*`;
-        msg += `\n\n🔥 *PAGANDO NO PIX (10% OFF): R$ ${totalPix.toFixed(2)}*`;
+        msg += `\n💰 Subtotal Camisas: R$ ${subtotal.toFixed(2)}`;
+        msg += `\n🔥 *PAGANDO NO PIX (10% OFF): R$ ${totalPix.toFixed(2)}*`;
+        msg += `\n\n--- *DADOS DE ENTREGA* ---`;
+        msg += `\n📍 *CEP:* ${cepInformado}`;
+        msg += `\n\n⚠️ _Aguardando cálculo do frete para fechar o pedido._`;
         
-        if (valorFreteGlobal === 0) {
-            msg += `\n\n⚠️ _Aguardando cálculo final do frete._`;
-        }
-
         window.open(`https://wa.me/5521986285970?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
