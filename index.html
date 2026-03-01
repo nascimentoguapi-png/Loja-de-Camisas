@@ -110,7 +110,6 @@
 
 <script>
     const linkPlanilha = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0m7HN1ePfdwVgr0aaFfYjjFv6r1zag8fZ4x5Ih8XKPLjEIe97nRHqU-hWKWfBEksbOH5Mw8u2Y6VZ/pub?output=csv";
-    // Removida a barra final para evitar URLs como //
     const URL_WORKER_FRETE = "https://frete-brazuka.brazukaoficial1-1.workers.dev"; 
 
     let produtosData = [];
@@ -185,38 +184,33 @@
         try {
             const response = await fetch(URL_WORKER_FRETE, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'text/plain' 
-                },
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({
-                    "from": "25946568",
                     "to": cepDestino,
-                    "services": "1,2,3,4,5,6,7,17",
-                    "options": { "width": 20, "height": 10, "length": 25, "weight": pesoTotal }
+                    "weight": pesoTotal
                 })
             });
 
-            if (!response.ok) throw new Error("Erro ao conectar com servidor de frete");
+            if (!response.ok) throw new Error("Erro na conexão");
 
             const data = await response.json();
-            if (data.error) throw new Error(data.error);
-
-            // Filtra o primeiro serviço válido que não tenha erro e tenha preço
-            const opcao = Array.isArray(data) ? data.find(s => !s.error && s.price) : null;
+            
+            // Lógica para SuperFrete: Procura a opção válida no array de serviços
+            const servicos = Array.isArray(data) ? data : (data.services || []);
+            const opcao = servicos.find(s => s.price && !s.error);
 
             if (opcao) {
                 valorFreteGlobal = parseFloat(opcao.price);
                 resultadoDiv.classList.remove('hidden');
-                // Ajustado para pegar o tempo de entrega correto da API
-                const prazo = opcao.delivery_range ? opcao.delivery_range.max : opcao.delivery;
+                const prazo = opcao.delivery_time || opcao.delivery || "Consulte";
                 infoFrete.innerText = `🚚 ${opcao.name}: R$ ${valorFreteGlobal.toFixed(2)} (${prazo} dias)`;
                 renderizarCarrinho();
             } else { 
-                alert("CEP não atendido. Tente outro."); 
+                alert("CEP não atendido pela SuperFrete."); 
             }
         } catch (e) { 
-            console.error("Erro detalhado:", e);
-            alert("O servidor de frete recusou a conexão ou o CEP é inválido."); 
+            console.error("Erro:", e);
+            alert("Erro ao calcular frete. Verifique o Worker."); 
         } finally { 
             btn.innerText = "Calcular"; 
             btn.disabled = false; 
