@@ -47,7 +47,7 @@
         .galeria-content { width: 90%; max-width: 450px; position: relative; }
         .galeria-img { width: 100%; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 80vh; object-fit: contain; }
         .galeria-nav { position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); pointer-events: none; }
-        .btn-nav-galeria { background: rgba(0,0,0,0.5); color: white; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; pointer-events: auto; }
+        .btn-nav-galeria { background: rgba(255,255,255,0.2); color: white; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; pointer-events: auto; font-size: 20px; }
 
         /* WHATSAPP FLUTUANTE */
         .btn-whatsapp-fixo { position: fixed; bottom: 20px; right: 20px; background-color: #25d366; color: #fff; width: 60px; height: 60px; border-radius: 50px; text-align: center; font-size: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.3); z-index: 90; display: flex; align-items: center; justify-content: center; animation: pulse-green 2s infinite; text-decoration: none; }
@@ -198,20 +198,25 @@
             produtosData = []; 
 
             linhas.forEach(l => {
-                const c = l.split(',');
+                const c = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // Regex para não quebrar links com vírgulas dentro de aspas
                 if(c.length < 5) return;
+
+                // LIMPEZA DOS LINKS: Remove aspas e espaços extras que o Sheets/PostImage geram
+                const imagemLimpa = c[4].replace(/["\r\n]/g, '').trim();
+
                 const p = {
-                    id: c[0].trim(), 
-                    nome: c[1].trim(), 
+                    id: c[0].replace(/"/g, '').trim(), 
+                    nome: c[1].replace(/"/g, '').trim(), 
                     preco: parseFloat(c[2]), 
                     atacado: parseFloat(c[3]), 
-                    imagem: c[4].trim(), // Aqui pode vir "link1,link2"
+                    imagem: imagemLimpa,
                     estoque: { P: parseInt(c[5])||0, M: parseInt(c[6])||0, G: parseInt(c[7])||0, GG: parseInt(c[8])||0 },
-                    categoria: c[9] ? c[9].trim().toLowerCase() : "todos"
+                    categoria: c[9] ? c[9].replace(/"/g, '').trim().toLowerCase() : "todos"
                 };
                 produtosData.push(p);
                 
-                const primeiraFoto = p.imagem.split(',')[0];
+                const fotosArray = p.imagem.split(',').map(f => f.trim());
+                const primeiraFoto = fotosArray[0];
                 
                 let tams = "";
                 for (let tam in p.estoque) {
@@ -220,7 +225,7 @@
                 }
                 grid.innerHTML += `
                     <div class="card-artilheiro item-produto" data-nome="${p.nome.toLowerCase()}" data-cat="${p.categoria}" id="${p.id}">
-                        <img src="${primeiraFoto}" onclick="abrirGaleria('${p.imagem}')" class="w-full h-44 object-cover cursor-zoom-in" title="Clique para ver mais fotos">
+                        <img src="${primeiraFoto}" onclick="abrirGaleria('${p.imagem}')" class="w-full h-44 object-cover cursor-zoom-in" onerror="this.src='https://via.placeholder.com/300?text=Link+Incorreto'">
                         <h3 class="text-[10px] px-2 h-8 text-center font-bold mt-1 uppercase">${p.nome}</h3>
                         <span class="price-main">R$ ${p.preco.toFixed(2)}</span>
                         <div class="atacado-box">
@@ -233,14 +238,12 @@
         } catch (e) { console.error("Erro ao carregar planilha", e); }
     }
 
-    // FUNÇÕES DA GALERIA
     function abrirGaleria(stringFotos) {
-        fotosAtuais = stringFotos.split(',').map(f => f.trim());
+        fotosAtuais = stringFotos.split(',').map(f => f.trim()).filter(f => f !== "");
+        if (fotosAtuais.length === 0) return;
         fotoIndice = 0;
         document.getElementById('img-ampliada').src = fotosAtuais[0];
         document.getElementById('modal-galeria').classList.add('active');
-        
-        // Esconde as setas se tiver só uma foto
         document.getElementById('nav-galeria').style.display = fotosAtuais.length > 1 ? 'flex' : 'none';
     }
 
@@ -344,12 +347,7 @@
         const item = carrinho[i];
         const pOriginal = produtosData.find(x => x.id === item.id);
         const estoqueMax = pOriginal.estoque[item.tamanho];
-
-        if (d > 0 && item.qtd + d > estoqueMax) {
-            alert(`Desculpe, só temos ${estoqueMax} unidade(s) disponíveis.`);
-            return;
-        }
-
+        if (d > 0 && item.qtd + d > estoqueMax) { alert(`Desculpe, só temos ${estoqueMax} disponíveis.`); return; }
         item.qtd += d; 
         if(item.qtd <= 0) carrinho.splice(i,1); 
         renderizarCarrinho(); 
@@ -357,14 +355,7 @@
     }
 
     function toggleCart() { document.getElementById('cart-modal').classList.toggle('hidden'); renderizarCarrinho(); }
-    
-    function moveSlide(n) { 
-        const s = document.querySelectorAll(".carousel-item"); 
-        let a = 0; 
-        s.forEach((img, i) => { if(img.classList.contains('active')){ a = i; img.classList.remove('active'); }}); 
-        let next = (a + n + s.length) % s.length; 
-        s[next].classList.add('active'); 
-    }
+    function moveSlide(n) { const s = document.querySelectorAll(".carousel-item"); let a = 0; s.forEach((img, i) => { if(img.classList.contains('active')){ a = i; img.classList.remove('active'); }}); let next = (a + n + s.length) % s.length; s[next].classList.add('active'); }
     setInterval(() => moveSlide(1), 5000);
 
     async function enviarWhatsApp() {
@@ -372,16 +363,13 @@
         const entrega = document.getElementById('forma-entrega').value;
         const cep = document.getElementById('cep-destino').value;
         if (entrega === 'frete' && !cep) { alert("Informe o CEP!"); return; }
-
         const btn = document.getElementById('btn-finalizar');
         btn.innerText = "PROCESSANDO...";
         btn.disabled = true;
-
         try {
             const dadosVenda = { itens: carrinho.map(i => ({ id: i.id, tamanho: i.tamanho, qtd: i.qtd })) };
             await fetch(URL_SCRIPT_ESTOQUE, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(dadosVenda) });
         } catch (e) { console.error(e); }
-
         let qtdT = carrinho.reduce((s, i) => s + i.qtd, 0);
         let eAtacado = qtdT >= 4, totalF = 0, totalV = 0;
         let msg = `🚀 *PEDIDO BRAZUKA 1.1*\n\n`;
@@ -390,19 +378,11 @@
             totalF += p * i.qtd; totalV += i.precoVarejo * i.qtd;
             msg += `✅ ${i.qtd}x ${i.nome} (${i.tamanho}) - R$ ${p.toFixed(2)}\n`;
         });
-        
         msg += `\n📦 *Entrega:* ${entrega === 'retirar' ? 'Retirar no Local' : 'Enviar por Frete'}`;
-        if(entrega === 'frete') {
-            msg += `\n📍 *CEP:* ${cep}\n\n⚠️ _Aguarde que informaremos o valor do frete!_`;
-        } else {
-            msg += `\n\n🕒 _Entraremos em contato para combinar a retirada!_`;
-        }
-        
-        msg += `\n\n💰 *Total: R$ ${totalF.toFixed(2)}*\n🎁 Economia: R$ ${(totalV-totalF).toFixed(2)}`;
+        if(entrega === 'frete') msg += `\n📍 *CEP:* ${cep}\n\n⚠️ _Aguarde o frete!_`;
+        msg += `\n\n💰 *Total: R$ ${totalF.toFixed(2)}*`;
         window.open(`https://wa.me/5521986285970?text=${encodeURIComponent(msg)}`);
-        
-        alert("Pedido enviado!");
-        setTimeout(() => { location.reload(); }, 1000);
+        location.reload();
     }
 
     carregarProdutos();
