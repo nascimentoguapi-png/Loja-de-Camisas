@@ -25,11 +25,42 @@
         .size-off::after { content: ""; position: absolute; width: 100%; height: 1px; background: #ccc; transform: rotate(-45deg); }
         .cep-input, .search-input { border: 1px solid #ccc; padding: 8px; border-radius: 4px; width: 100%; font-size: 14px; outline: none; }
         .cep-input:focus, .search-input:focus { border-color: #bf953f; }
+        
+        /* BOTÃO FLUTUANTE WHATSAPP */
+        .btn-whatsapp-fixo {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #25d366;
+            color: #fff;
+            width: 60px;
+            height: 60px;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 30px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+            z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse-green 2s infinite;
+            text-decoration: none;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
     </style>
 </head>
 <body>
 
 <div class="site-container">
+    <a href="https://wa.me/5521986285970?text=Olá! Gostaria de tirar uma dúvida sobre as camisas." target="_blank" class="btn-whatsapp-fixo">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
     <header class="banner-header sticky top-0 z-50 border-b border-yellow-600 shadow-xl">
         <img src="banner-topo.png" alt="Brazuka 1.1" class="banner-img">
         <button onclick="toggleCart()" class="absolute right-3 top-3 bg-black/60 p-2 rounded-full border border-white/20">
@@ -79,27 +110,23 @@
                 <div class="flex gap-2">
                     <input type="text" id="cep-destino" placeholder="00000-000" class="cep-input" maxlength="9">
                 </div>
-                <p class="text-[9px] text-gray-400 mt-1">*Cálculo do frete após o envio do pedido.</p>
             </div>
 
             <div class="p-4 bg-gray-50">
                 <div id="aviso-atacado" class="text-[10px] text-center font-bold text-green-700 mb-2 hidden">🔥 MODO ATACADO ATIVADO!</div>
-                
                 <div class="flex justify-between text-xs text-gray-500 mb-1">
                     <span>Subtotal Camisas:</span>
                     <span id="subtotal-value">R$ 0,00</span>
                 </div>
-
                 <div id="economia-row" class="flex justify-between text-xs text-green-600 font-bold mb-1 hidden">
-                    <span>Você está economizando:</span>
+                    <span>Economia Atacado:</span>
                     <span id="economia-value">R$ 0,00</span>
                 </div>
-
                 <div class="flex justify-between font-black text-lg mb-4 border-t pt-2">
                     <span>TOTAL:</span>
                     <span id="cart-total-value">R$ 0,00</span>
                 </div>
-                <button id="btn-finalizar" onclick="enviarWhatsApp()" class="w-full bg-[#28a745] text-white py-4 rounded font-black uppercase text-sm shadow-lg">Enviar Pedido no WhatsApp</button>
+                <button id="btn-finalizar" onclick="enviarWhatsApp()" class="w-full bg-[#28a745] text-white py-4 rounded font-black uppercase text-sm shadow-lg">Enviar Pedido para Orçamento</button>
             </div>
         </div>
     </div>
@@ -125,18 +152,14 @@
                 const col = linha.split(',');
                 if(col.length < 5) return;
                 const prod = {
-                    id: col[0].trim(),
-                    nome: col[1].trim(),
-                    preco: parseFloat(col[2]),
-                    atacado: parseFloat(col[3]),
-                    imagem: col[4].trim(),
+                    id: col[0].trim(), nome: col[1].trim(), preco: parseFloat(col[2]), atacado: parseFloat(col[3]), imagem: col[4].trim(),
                     estoque: { P: parseInt(col[5])||0, M: parseInt(col[6])||0, G: parseInt(col[7])||0, GG: parseInt(col[8])||0 }
                 };
                 produtosData.push(prod);
-                let tamanhosHTML = "";
-                for (let tam in prod.estoque) {
-                    if (prod.estoque[tam] > 0) tamanhosHTML += `<button onclick="selecionarTamanho(this, '${prod.id}')" class="size-box">${tam}</button>`;
-                    else tamanhosHTML += `<button class="size-box size-off">${tam}</button>`;
+                let tamHTML = "";
+                for (let t in prod.estoque) {
+                    if (prod.estoque[t] > 0) tamHTML += `<button onclick="selecionarTamanho(this, '${prod.id}')" class="size-box">${t}</button>`;
+                    else tamHTML += `<button class="size-box size-off">${t}</button>`;
                 }
                 grid.innerHTML += `
                     <div class="card-artilheiro item-produto" data-nome="${prod.nome.toLowerCase()}" id="${prod.id}">
@@ -147,7 +170,7 @@
                             <span class="text-[9px] text-yellow-700 font-bold uppercase">— Atacado —</span>
                             <p class="text-[8px]">Mín. 4 un. por <b>R$ ${prod.atacado.toFixed(2)}</b></p>
                         </div>
-                        <div class="flex gap-1 my-2">${tamanhosHTML}</div>
+                        <div class="flex gap-1 my-2">${tamHTML}</div>
                         <button onclick="adicionarAoCarrinho('${prod.id}')" class="w-[90%] btn-dourado py-2 rounded text-[11px] uppercase shadow-md">Comprar</button>
                     </div>`;
             });
@@ -155,36 +178,31 @@
     }
 
     function filtrarProdutos() {
-        const termo = document.getElementById('input-busca').value.toLowerCase();
-        document.querySelectorAll('.item-produto').forEach(prod => {
-            prod.style.display = prod.getAttribute('data-nome').includes(termo) ? "flex" : "none";
-        });
+        const t = document.getElementById('input-busca').value.toLowerCase();
+        document.querySelectorAll('.item-produto').forEach(p => p.style.display = p.getAttribute('data-nome').includes(t) ? "flex" : "none");
     }
 
     function renderizarCarrinho() {
         const lista = document.getElementById('cart-items-list');
         const avisoAtacado = document.getElementById('aviso-atacado');
         const economiaRow = document.getElementById('economia-row');
-        const economiaValue = document.getElementById('economia-value');
-        
-        let totalFinal = 0;
-        let totalVarejoSimulado = 0;
+        let totalFinal = 0, totalVarejoSim = 0;
         let qtdTotal = carrinho.reduce((s, i) => s + i.qtd, 0);
         let eAtacado = qtdTotal >= 4;
 
         lista.innerHTML = carrinho.length === 0 ? '<p class="text-center text-gray-400 mt-10">Carrinho vazio</p>' : '';
         
         carrinho.forEach((item, index) => {
-            let precoUnitario = eAtacado ? item.precoAtacado : item.precoVarejo;
-            totalFinal += precoUnitario * item.qtd;
-            totalVarejoSimulado += item.precoVarejo * item.qtd;
+            let precoUnit = eAtacado ? item.precoAtacado : item.precoVarejo;
+            totalFinal += precoUnit * item.qtd;
+            totalVarejoSim += item.precoVarejo * item.qtd;
 
             lista.innerHTML += `
                 <div class="flex justify-between items-center border-b pb-4">
                     <div class="flex-1">
                         <p class="font-black text-[11px] uppercase">${item.nome}</p>
                         <p class="text-red-600 text-[10px] font-bold">TAM: ${item.tamanho}</p>
-                        <p class="text-gray-500 text-[11px]">R$ ${precoUnitario.toFixed(2)} un. ${eAtacado ? '<span class="text-green-600 font-bold">(Atacado)</span>' : ''}</p>
+                        <p class="text-gray-500 text-[11px]">R$ ${precoUnit.toFixed(2)} un. ${eAtacado ? '<span class="text-green-600 font-bold">(Atacado)</span>' : ''}</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <button onclick="alterarQtd(${index}, -1)" class="px-2 bg-gray-200">-</button>
@@ -194,26 +212,18 @@
                 </div>`;
         });
 
-        // Cálculo da economia
-        const economia = totalVarejoSimulado - totalFinal;
-
-        if (eAtacado && economia > 0) {
-            avisoAtacado.classList.remove('hidden');
-            economiaRow.classList.remove('hidden');
-            economiaValue.innerText = `R$ ${economia.toFixed(2)}`;
-        } else {
-            avisoAtacado.classList.add('hidden');
-            economiaRow.classList.add('hidden');
-        }
+        const eco = totalVarejoSim - totalFinal;
+        if (eAtacado && eco > 0) { avisoAtacado.classList.remove('hidden'); economiaRow.classList.remove('hidden'); document.getElementById('economia-value').innerText = `R$ ${eco.toFixed(2)}`; }
+        else { avisoAtacado.classList.add('hidden'); economiaRow.classList.add('hidden'); }
 
         document.getElementById('subtotal-value').innerText = `R$ ${totalFinal.toFixed(2)}`;
         document.getElementById('cart-total-value').innerText = `R$ ${totalFinal.toFixed(2)}`;
     }
 
-    function selecionarTamanho(botao, id) {
-        document.getElementById(id).querySelectorAll('.size-box').forEach(b => b.classList.remove('size-selected'));
-        botao.classList.add('size-selected');
-        selecoesTemporarias[id] = botao.innerText;
+    function selecionarTamanho(b, id) {
+        document.getElementById(id).querySelectorAll('.size-box').forEach(x => x.classList.remove('size-selected'));
+        b.classList.add('size-selected');
+        selecoesTemporarias[id] = b.innerText;
     }
 
     function adicionarAoCarrinho(id) {
@@ -221,19 +231,8 @@
         const tam = selecoesTemporarias[id];
         if (!tam) { alert("Selecione o tamanho!"); return; }
         const idx = carrinho.findIndex(i => i.id === id && i.tamanho === tam);
-        
-        if (idx !== -1) {
-            carrinho[idx].qtd++;
-        } else {
-            carrinho.push({ 
-                id, 
-                nome: prod.nome, 
-                tamanho: tam, 
-                precoVarejo: prod.preco, 
-                precoAtacado: prod.atacado, 
-                qtd: 1 
-            });
-        }
+        if (idx !== -1) carrinho[idx].qtd++;
+        else carrinho.push({ id, nome: prod.nome, tamanho: tam, precoVarejo: prod.preco, precoAtacado: prod.atacado, qtd: 1 });
         atualizarContador();
         alert("Adicionado!");
     }
@@ -246,35 +245,27 @@
 
     async function enviarWhatsApp() {
         if (carrinho.length === 0) { alert("Adicione itens!"); return; }
-        
-        const cepInformado = document.getElementById('cep-destino').value;
-        if (!cepInformado) { alert("Por favor, informe seu CEP para o cálculo do frete."); return; }
+        const cep = document.getElementById('cep-destino').value;
+        if (!cep) { alert("Informe seu CEP!"); return; }
 
         let qtdTotal = carrinho.reduce((s, i) => s + i.qtd, 0);
-        let eAtacado = qtdTotal >= 4;
-        let totalFinal = 0;
-        let totalVarejoSimulado = 0;
+        let eAtacado = qtdTotal >= 4, totalF = 0, totalV = 0;
         
         let msg = "🚀 *NOVO PEDIDO - BRAZUKA 1.1*\n\n";
         msg += eAtacado ? "🔥 *MODO ATACADO ATIVADO* 🔥\n\n" : "🛒 *MODO VAREJO*\n\n";
         
-        msg += "--- *ITENS* ---\n";
         carrinho.forEach((item) => {
-            let precoUnit = eAtacado ? item.precoAtacado : item.precoVarejo;
-            totalFinal += precoUnit * item.qtd;
-            totalVarejoSimulado += item.precoVarejo * item.qtd;
-            msg += `✅ ${item.qtd}x ${item.nome} (TAM: ${item.tamanho}) - R$ ${precoUnit.toFixed(2)} un.\n`;
+            let p = eAtacado ? item.precoAtacado : item.precoVarejo;
+            totalF += p * item.qtd;
+            totalV += item.precoVarejo * item.qtd;
+            msg += `✅ ${item.qtd}x ${item.nome} (TAM: ${item.tamanho}) - R$ ${p.toFixed(2)} un.\n`;
         });
         
-        let economia = totalVarejoSimulado - totalFinal;
-
-        msg += `\n--- *TOTAL DO PEDIDO* ---`;
-        msg += `\n💰 Valor: R$ ${totalFinal.toFixed(2)}`;
-        if(eAtacado && economia > 0) {
-            msg += `\n🎁 *Economia de Atacado: R$ ${economia.toFixed(2)}*`;
-        }
-        msg += `\n📍 *CEP de Entrega:* ${cepInformado}`;
-        msg += `\n\n⚠️ _Por favor, me informe o valor do frete para eu finalizar o pagamento!_`;
+        let eco = totalV - totalF;
+        msg += `\n💰 *VALOR TOTAL: R$ ${totalF.toFixed(2)}*`;
+        if(eAtacado && eco > 0) msg += `\n🎁 Economia: R$ ${eco.toFixed(2)}`;
+        msg += `\n📍 *CEP:* ${cep}`;
+        msg += `\n\n⚠️ _Por favor, me informe o frete para finalizar!_`;
         
         window.open(`https://wa.me/5521986285970?text=${encodeURIComponent(msg)}`, '_blank');
     }
