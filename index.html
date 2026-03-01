@@ -78,7 +78,7 @@
                 <label class="text-[10px] font-bold uppercase text-gray-500 mb-1 block">Calcular Frete:</label>
                 <div class="flex gap-2">
                     <input type="text" id="cep-destino" placeholder="00000-000" class="cep-input" maxlength="9">
-                    <button id="btn-calc-frete" onclick="calcularFreteWorker()" class="bg-black text-white px-4 rounded text-xs font-bold uppercase">Calcular</button>
+                    <button id="btn-calc-frete" onclick="calcularFreteManual()" class="bg-black text-white px-4 rounded text-xs font-bold uppercase">Calcular</button>
                 </div>
                 <div id="resultado-frete" class="mt-2 hidden">
                     <p class="text-[11px] font-bold text-green-700" id="info-frete"></p>
@@ -110,7 +110,6 @@
 
 <script>
     const linkPlanilha = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0m7HN1ePfdwVgr0aaFfYjjFv6r1zag8fZ4x5Ih8XKPLjEIe97nRHqU-hWKWfBEksbOH5Mw8u2Y6VZ/pub?output=csv";
-    const URL_WORKER_FRETE = "https://frete-brazuka.brazukaoficial1-1.workers.dev"; 
 
     let produtosData = [];
     let carrinho = [];
@@ -166,14 +165,15 @@
         });
     }
 
-    async function calcularFreteWorker() {
-        const cepDestino = document.getElementById('cep-destino').value.replace(/\D/g, '');
+    // NOVA FUNÇÃO DE FRETE MANUAL POR REGIÕES [cite: 2026-02-21]
+    function calcularFreteManual() {
+        const cepInput = document.getElementById('cep-destino').value.replace(/\D/g, '');
         const btn = document.getElementById('btn-calc-frete');
         const infoFrete = document.getElementById('info-frete');
         const resultadoDiv = document.getElementById('resultado-frete');
 
-        if (cepDestino.length !== 8) {
-            alert("Digite um CEP válido.");
+        if (cepInput.length !== 8) {
+            alert("Por favor, digite um CEP válido com 8 números.");
             return;
         }
 
@@ -181,48 +181,40 @@
             alert("Adicione itens ao carrinho primeiro.");
             return;
         }
-        
+
         btn.innerText = "Calculando...";
         btn.disabled = true;
 
-        const totalItens = carrinho.reduce((sum, item) => sum + item.qtd, 0);
-        const pesoTotal = totalItens > 0 ? totalItens * 0.3 : 0.3;
+        const prefixo = parseInt(cepInput.substring(0, 2));
+        
+        let valor = 35.00; // Valor padrão para segurança [cite: 2026-02-21]
+        let prazo = "8 a 12";
+        let regiaoNome = "Envio Nacional";
 
-        try {
-            const response = await fetch(URL_WORKER_FRETE, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ to: cepDestino, weight: pesoTotal })
-            });
+        // Lógica de Frete por Regiões baseada no seu CEP de origem
+        if (prefixo >= 20 && prefixo <= 28) { 
+            valor = 15.00; prazo = "2 a 5"; regiaoNome = "Rio de Janeiro (Local)"; 
+        } else if (prefixo <= 19 || (prefixo >= 29 && prefixo <= 39)) {
+            valor = 22.00; prazo = "4 a 7"; regiaoNome = "Sudeste (SP, MG, ES)"; 
+        } else if (prefixo >= 40 && prefixo <= 65) {
+            valor = 38.00; prazo = "9 a 14"; regiaoNome = "Nordeste"; 
+        } else if (prefixo >= 66 && prefixo <= 69) {
+            valor = 48.00; prazo = "12 a 20"; regiaoNome = "Norte (AM/PA)"; 
+        } else if (prefixo >= 70 && prefixo <= 99) {
+            valor = 29.00; prazo = "7 a 10"; regiaoNome = "Sul / Centro-Oeste"; 
+        }
 
-            const data = await response.json();
-
-            // EXIBE O ERRO REAL DA API SUPERFRETE (Útil para diagnóstico no celular) [cite: 2026-02-21]
-            if (data.error || data.message) {
-                alert("ERRO REAL: " + (data.message || data.error)); // [cite: 2026-02-21]
-                return;
-            }
-
-            const servicos = Array.isArray(data) ? data : (data.services || []);
-            const opcao = servicos.find(s => s.price && !s.error);
-
-            if (opcao) {
-                valorFreteGlobal = parseFloat(opcao.price);
-                resultadoDiv.classList.remove('hidden');
-                const prazo = opcao.delivery_time || "7-10";
-                infoFrete.innerText = `🚚 ${opcao.name}: R$ ${valorFreteGlobal.toFixed(2)} (${prazo} dias)`;
-                renderizarCarrinho();
-            } else {
-                // Caso a API responda mas não traga serviços válidos [cite: 2026-02-21]
-                alert("API respondeu mas sem preços. Detalhe: " + JSON.stringify(data)); // [cite: 2026-02-21]
-            }
-
-        } catch (e) {
-            alert("Erro de conexão: " + e.message); // [cite: 2026-02-21]
-        } finally {
+        // Simulação de carregamento rápido [cite: 2026-02-21]
+        setTimeout(() => {
+            valorFreteGlobal = valor;
+            resultadoDiv.classList.remove('hidden');
+            infoFrete.innerText = `🚚 ${regiaoNome}: R$ ${valor.toFixed(2)} (${prazo} dias úteis)`;
+            
+            renderizarCarrinho(); // Atualiza os totais no carrinho [cite: 2026-02-21]
+            
             btn.innerText = "Calcular";
             btn.disabled = false;
-        }
+        }, 800);
     }
 
     function renderizarCarrinho() {
