@@ -38,7 +38,8 @@
         .size-off::after { content: ""; position: absolute; width: 100%; height: 1px; background: #ccc; transform: rotate(-45deg); }
         
         /* INPUTS */
-        .cep-input, .search-input { border: 1px solid #ccc; padding: 8px; border-radius: 4px; width: 100%; font-size: 14px; outline: none; }
+        .cep-input, .search-input, .select-input { border: 1px solid #ccc; padding: 8px; border-radius: 4px; width: 100%; font-size: 14px; outline: none; background: white; }
+        .cep-input:disabled { background-color: #eee; cursor: not-allowed; }
         
         /* WHATSAPP FLUTUANTE */
         .btn-whatsapp-fixo { position: fixed; bottom: 20px; right: 20px; background-color: #25d366; color: #fff; width: 60px; height: 60px; border-radius: 50px; text-align: center; font-size: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.3); z-index: 90; display: flex; align-items: center; justify-content: center; animation: pulse-green 2s infinite; text-decoration: none; }
@@ -106,10 +107,21 @@
                 <button onclick="toggleCart()" class="text-3xl">&times;</button>
             </div>
             <div id="cart-items-list" class="flex-1 overflow-y-auto p-4 space-y-6"></div>
-            <div class="p-4 bg-gray-100 border-t border-b">
-                <label class="text-[10px] font-bold uppercase text-gray-500 mb-1 block">Seu CEP para frete:</label>
-                <input type="text" id="cep-destino" placeholder="00000-000" class="cep-input" maxlength="9">
+            
+            <div class="p-4 bg-gray-100 border-t border-b space-y-3">
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-gray-500 mb-1 block">Como deseja receber?</label>
+                    <select id="forma-entrega" class="select-input" onchange="toggleCepInput()">
+                        <option value="frete">Enviar para meu endereço</option>
+                        <option value="retirar">Retirar no local (Bangu/RJ)</option>
+                    </select>
+                </div>
+                <div id="campo-cep">
+                    <label class="text-[10px] font-bold uppercase text-gray-500 mb-1 block">Seu CEP:</label>
+                    <input type="text" id="cep-destino" placeholder="00000-000" class="cep-input" maxlength="9">
+                </div>
             </div>
+
             <div class="p-4 bg-gray-50">
                 <div id="aviso-atacado" class="text-[10px] text-center font-bold text-green-700 mb-2 hidden">🔥 MODO ATACADO ATIVADO!</div>
                 <div class="flex justify-between text-xs text-gray-500 mb-1">
@@ -141,6 +153,19 @@
         const o = document.getElementById('overlay');
         m.classList.toggle('active');
         o.style.display = m.classList.contains('active') ? 'block' : 'none';
+    }
+
+    function toggleCepInput() {
+        const entrega = document.getElementById('forma-entrega').value;
+        const inputCep = document.getElementById('cep-destino');
+        if (entrega === 'retirar') {
+            inputCep.value = "";
+            inputCep.disabled = true;
+            inputCep.placeholder = "Não necessário p/ retirada";
+        } else {
+            inputCep.disabled = false;
+            inputCep.placeholder = "00000-000";
+        }
     }
 
     async function carregarProdutos() {
@@ -211,7 +236,6 @@
         selecoesTemporarias[id] = btn.innerText;
     }
 
-    // MODIFICADO: Agora checa o estoque antes de adicionar
     function adicionarAoCarrinho(id) {
         const p = produtosData.find(x => x.id === id);
         const t = selecoesTemporarias[id];
@@ -270,7 +294,6 @@
         document.getElementById('cart-total-value').innerText = `R$ ${totalF.toFixed(2)}`;
     }
 
-    // MODIFICADO: Agora checa o estoque ao aumentar quantidade no carrinho
     function alterarQtd(i, d) { 
         const item = carrinho[i];
         const pOriginal = produtosData.find(x => x.id === item.id);
@@ -293,8 +316,14 @@
 
     async function enviarWhatsApp() {
         if (!carrinho.length) return;
+        
+        const entrega = document.getElementById('forma-entrega').value;
         const cep = document.getElementById('cep-destino').value;
-        if (!cep) { alert("Informe o CEP!"); return; }
+        
+        if (entrega === 'frete' && !cep) { 
+            alert("Informe o CEP para o frete!"); 
+            return; 
+        }
 
         const btn = document.getElementById('btn-finalizar');
         btn.innerText = "PROCESSANDO...";
@@ -317,13 +346,25 @@
 
         let qtdT = carrinho.reduce((s, i) => s + i.qtd, 0);
         let eAtacado = qtdT >= 4, totalF = 0, totalV = 0;
+        
         let msg = `🚀 *PEDIDO BRAZUKA 1.1*\n\n`;
         carrinho.forEach(i => {
             let p = eAtacado ? i.precoAtacado : i.precoVarejo;
             totalF += p * i.qtd; totalV += i.precoVarejo * i.qtd;
             msg += `✅ ${i.qtd}x ${i.nome} (${i.tamanho}) - R$ ${p.toFixed(2)}\n`;
         });
-        msg += `\n💰 *Total: R$ ${totalF.toFixed(2)}*\n🎁 Economia: R$ ${(totalV-totalF).toFixed(2)}\n📍 CEP: ${cep}`; msg += `\n\n⚠️ _Aguarde que informaremos o valor do frete!_`;
+        
+        msg += `\n📦 *Entrega:* ${entrega === 'retirar' ? 'Retirar no Local' : 'Enviar por Frete'}`;
+        
+        if(entrega === 'frete') {
+            msg += `\n📍 *CEP:* ${cep}`;
+            msg += `\n\n⚠️ _Aguarde que informaremos o valor do frete!_`;
+        } else {
+            msg += `\n\n🕒 _Entraremos em contato para combinar o horário da retirada!_`;
+        }
+        
+        msg += `\n\n💰 *Total: R$ ${totalF.toFixed(2)}*\n🎁 Economia: R$ ${(totalV-totalF).toFixed(2)}`;
+        
         window.open(`https://wa.me/5521986285970?text=${encodeURIComponent(msg)}`);
         
         alert("Pedido enviado! O estoque será atualizado.");
