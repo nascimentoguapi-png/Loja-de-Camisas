@@ -144,7 +144,20 @@
                     <span>TOTAL:</span>
                     <span id="cart-total-value">R$ 0,00</span>
                 </div>
-                <button id="btn-finalizar" onclick="enviarWhatsApp()" class="w-full bg-[#28a745] text-white py-4 rounded font-black uppercase text-sm shadow-lg">Finalizar Pedido</button>
+                
+                <button id="btn-finalizar" onclick="enviarWhatsApp()" class="w-full bg-[#28a745] text-white py-4 rounded font-black uppercase text-sm shadow-lg flex items-center justify-center gap-2">
+                    <i class="fab fa-whatsapp"></i> Finalizar Pedido
+                </button>
+
+                <div class="mt-4 flex flex-col items-center gap-2 opacity-70">
+                    <div class="flex gap-3 text-xl">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fas fa-barcode"></i>
+                        <i class="fab fa-pix text-green-600"></i>
+                    </div>
+                    <span class="text-[9px] font-bold text-gray-600 uppercase">Pagamento Seguro via Link (Cartão ou Pix)</span>
+                </div>
             </div>
         </div>
     </div>
@@ -237,19 +250,14 @@
         } catch (e) { console.error("Erro ao carregar planilha", e); }
     }
 
-    // NOVA FUNÇÃO DE GALERIA QUE BUSCA TODAS AS FOTOS PELO ID
     function abrirGaleria(id) {
         const p = produtosData.find(x => x.id === id);
         if(!p) return;
-
         fotosAtuais = p.imagem.split(',').map(f => f.trim()).filter(f => f !== "");
         if (fotosAtuais.length === 0) return;
-
         fotoIndice = 0;
         document.getElementById('img-ampliada').src = fotosAtuais[0];
         document.getElementById('modal-galeria').classList.add('active');
-        
-        // Exibe setas apenas se houver mais de uma imagem
         document.getElementById('nav-galeria').style.display = fotosAtuais.length > 1 ? 'flex' : 'none';
     }
 
@@ -296,22 +304,18 @@
         const p = produtosData.find(x => x.id === id);
         const t = selecoesTemporarias[id];
         if (!t) { alert("Escolha o tamanho!"); return; }
-
         const estoqueDisponivel = p.estoque[t];
         const jaTemIdx = carrinho.findIndex(i => i.id === id && i.tamanho === t);
         const qtdNoCarrinho = jaTemIdx !== -1 ? carrinho[jaTemIdx].qtd : 0;
-
         if (qtdNoCarrinho + 1 > estoqueDisponivel) {
             alert(`Limite atingido! Temos apenas ${estoqueDisponivel} unidade(s) do tamanho ${t} em estoque.`);
             return;
         }
-
         if (jaTemIdx !== -1) {
             carrinho[jaTemIdx].qtd++;
         } else {
             carrinho.push({ id, nome: p.nome, tamanho: t, precoVarejo: p.preco, precoAtacado: p.atacado, qtd: 1 });
         }
-
         document.getElementById('cart-count').innerText = carrinho.reduce((s, i) => s + i.qtd, 0);
         alert("Adicionado!");
     }
@@ -323,7 +327,6 @@
         let totalF = 0, totalV = 0;
         let qtdT = carrinho.reduce((s, i) => s + i.qtd, 0);
         let eAtacado = qtdT >= 4;
-
         lista.innerHTML = carrinho.length === 0 ? '<p class="text-center text-gray-400 mt-10">Vazio</p>' : '';
         carrinho.forEach((item, idx) => {
             let precoU = eAtacado ? item.precoAtacado : item.precoVarejo;
@@ -342,7 +345,6 @@
                     </div>
                 </div>`;
         });
-
         let eco = totalV - totalF;
         if (eAtacado && eco > 0) { aviso.classList.remove('hidden'); ecoRow.classList.remove('hidden'); document.getElementById('economia-value').innerText = `R$ ${eco.toFixed(2)}`; }
         else { aviso.classList.add('hidden'); ecoRow.classList.add('hidden'); }
@@ -365,6 +367,7 @@
     function moveSlide(n) { const s = document.querySelectorAll(".carousel-item"); let a = 0; s.forEach((img, i) => { if(img.classList.contains('active')){ a = i; img.classList.remove('active'); }}); let next = (a + n + s.length) % s.length; s[next].classList.add('active'); }
     setInterval(() => moveSlide(1), 5000);
 
+    // FUNÇÃO ATUALIZADA COM MENSAGEM DE PAGAMENTO
     async function enviarWhatsApp() {
         if (!carrinho.length) return;
         const entrega = document.getElementById('forma-entrega').value;
@@ -378,16 +381,18 @@
             await fetch(URL_SCRIPT_ESTOQUE, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(dadosVenda) });
         } catch (e) { console.error(e); }
         let qtdT = carrinho.reduce((s, i) => s + i.qtd, 0);
-        let eAtacado = qtdT >= 4, totalF = 0, totalV = 0;
+        let eAtacado = qtdT >= 4, totalF = 0;
         let msg = `🚀 *PEDIDO BRAZUKA 1.1*\n\n`;
         carrinho.forEach(i => {
             let p = eAtacado ? i.precoAtacado : i.precoVarejo;
-            totalF += p * i.qtd; totalV += i.precoVarejo * i.qtd;
+            totalF += p * i.qtd;
             msg += `✅ ${i.qtd}x ${i.nome} (${i.tamanho}) - R$ ${p.toFixed(2)}\n`;
         });
-        msg += `\n📦 *Entrega:* ${entrega === 'retirar' ? 'Retirar no Local' : 'Enviar por Frete'}`;
-        if(entrega === 'frete') msg += `\n📍 *CEP:* ${cep}\n\n⚠️ _Aguarde o frete!_`;
-        msg += `\n\n💰 *Total: R$ ${totalF.toFixed(2)}*`;
+        msg += `\n📦 *Entrega:* ${entrega === 'retirar' ? 'Retirar no Local' : 'Enviar por Frete (CEP: '+cep+')'}`;
+        msg += `\n💰 *Total: R$ ${totalF.toFixed(2)}*`;
+        msg += `\n\n💳 *Pagamento via:* ( ) Pix  ( ) Cartão de Crédito`;
+        msg += `\n\n_Pode gerar meu link de pagamento, por favor?_`;
+        
         window.open(`https://wa.me/5521986285970?text=${encodeURIComponent(msg)}`);
         location.reload();
     }
