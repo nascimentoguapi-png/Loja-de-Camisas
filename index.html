@@ -200,14 +200,13 @@
         o.style.display = m.classList.contains('active') ? 'block' : 'none';
     }
 
-    // NOVAS FUNÇÕES PARA POLÍTICA
     function togglePolitica() {
         document.getElementById('modal-politica').classList.toggle('active');
     }
 
     function abrirPolitica() {
-        toggleMenu(); // Fecha o menu lateral primeiro
-        togglePolitica(); // Abre o modal do banner
+        toggleMenu(); 
+        togglePolitica(); 
     }
 
     function fecharPolitica(e) {
@@ -326,18 +325,28 @@
         selecoesTemporarias[id] = btn.innerText;
     }
 
+    // FUNÇÃO ATUALIZADA COM VERIFICAÇÃO DE ESTOQUE
     function adicionarAoCarrinho(id) {
         const p = produtosData.find(x => x.id === id);
         const t = selecoesTemporarias[id];
         if (!t) { alert("Escolha o tamanho!"); return; }
+
+        const estoqueDisponivel = p.estoque[t];
         const jaTemIdx = carrinho.findIndex(i => i.id === id && i.tamanho === t);
+        const qtdNoCarrinho = jaTemIdx !== -1 ? carrinho[jaTemIdx].qtd : 0;
+
+        if (qtdNoCarrinho + 1 > estoqueDisponivel) {
+            alert(`Ops! Temos apenas ${estoqueDisponivel} unidade(s) do tamanho ${t} em estoque.`);
+            return;
+        }
+
         if (jaTemIdx !== -1) {
             carrinho[jaTemIdx].qtd++;
         } else {
             carrinho.push({ id, nome: p.nome, tamanho: t, precoVarejo: p.preco, precoAtacado: p.atacado, qtd: 1 });
         }
         document.getElementById('cart-count').innerText = carrinho.reduce((s, i) => s + i.qtd, 0);
-        alert("Adicionado!");
+        alert("Adicionado ao carrinho!");
     }
 
     function renderizarCarrinho() {
@@ -372,9 +381,19 @@
         document.getElementById('cart-total-value').innerText = `R$ ${totalF.toFixed(2)}`;
     }
 
+    // FUNÇÃO ATUALIZADA COM VERIFICAÇÃO DE ESTOQUE NO BOTÃO +
     function alterarQtd(i, d) { 
-        carrinho[i].qtd += d; 
-        if(carrinho[i].qtd <= 0) carrinho.splice(i,1); 
+        const item = carrinho[i];
+        const pOriginal = produtosData.find(x => x.id === item.id);
+        const estoqueMax = pOriginal.estoque[item.tamanho];
+
+        if (d > 0 && item.qtd + d > estoqueMax) {
+            alert(`Limite de estoque atingido! Só temos ${estoqueMax} unidades desse tamanho.`);
+            return;
+        }
+
+        item.qtd += d; 
+        if(item.qtd <= 0) carrinho.splice(i,1); 
         renderizarCarrinho(); 
         document.getElementById('cart-count').innerText = carrinho.reduce((s, i) => s + i.qtd, 0); 
     }
