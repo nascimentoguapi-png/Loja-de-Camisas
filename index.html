@@ -17,7 +17,7 @@
         /* MENU LATERAL */
         .side-menu { position: fixed; top: 0; left: -100%; width: 80%; max-width: 300px; height: 100%; background-color: #111; z-index: 200; transition: 0.4s; padding-top: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
         .side-menu.active { left: 0; }
-        .side-menu a { display: block; padding: 15px 25px; color: #fff; text-transform: uppercase; font-size: 13px; font-weight: bold; border-bottom: 1px solid #222; text-decoration: none; }
+        .side-menu a { display: block; padding: 15px 25px; color: #fff; text-transform: uppercase; font-size: 13px; font-weight: bold; border-bottom: 1px solid #222; text-decoration: none; cursor: pointer; }
         .side-menu a:active { background-color: #bf953f; color: #000; }
         .overlay-menu { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 150; }
         .btn-menu-trigger { position: absolute; left: 15px; top: 15px; color: #fff; font-size: 22px; cursor: pointer; z-index: 60; background: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 5px; }
@@ -29,7 +29,7 @@
         .card-artilheiro { background-color: #fff; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; padding-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .price-main { color: #333; font-size: 1.2rem; font-weight: 800; }
         .atacado-box { border-top: 1px solid #d4af37; border-bottom: 1px solid #d4af37; width: 90%; margin: 5px 0; text-align: center; padding: 2px 0; }
-        .btn-dourado { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); color: #000; border: none; font-weight: 900; transition: 0.3s; }
+        .btn-dourado { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); color: #000; border: none; font-weight: 900; transition: 0.3s; cursor: pointer; }
         
         /* TAMANHOS */
         .size-box { border: 1px solid #333; width: 28px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; cursor: pointer; background: white; color: black; }
@@ -41,7 +41,7 @@
         .cep-input, .search-input, .select-input { border: 1px solid #ccc; padding: 8px; border-radius: 4px; width: 100%; font-size: 14px; outline: none; background: white; }
         .cep-input:disabled { background-color: #eee; cursor: not-allowed; }
         
-        /* GALERIA AMPLIADA */
+        /* MODAIS */
         .modal-galeria { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 300; display: none; align-items: center; justify-content: center; }
         .modal-galeria.active { display: flex; }
         .galeria-content { width: 90%; max-width: 450px; position: relative; }
@@ -63,12 +63,13 @@
         <div class="px-6 py-4 border-b border-yellow-600 mb-2">
             <h3 class="text-white font-black uppercase text-lg italic">Brazuka 1.1</h3>
         </div>
-        <a href="#" onclick="filtrarProdutos('todos')">Início / Todos</a>
-        <a href="#" onclick="filtrarProdutos('torcedor')">Versão Torcedor</a>
-        <a href="#" onclick="filtrarProdutos('jogador')">Versão Jogador</a>
-        <a href="#" onclick="filtrarProdutos('feminina')">Camisas Femininas</a>
-        <a href="#" onclick="filtrarProdutos('selecoes')">Seleções</a>
-        <a href="#" onclick="filtrarProdutos('retro')">Camisas Retrô</a>
+        <a onclick="filtrarProdutos('todos')">Início / Todos</a>
+        <a onclick="filtrarProdutos('torcedor')">Versão Torcedor</a>
+        <a onclick="filtrarProdutos('jogador')">Versão Jogador</a>
+        <a onclick="filtrarProdutos('feminina')">Camisas Femininas</a>
+        <a onclick="filtrarProdutos('selecoes')">Seleções</a>
+        <a onclick="filtrarProdutos('retro')">Camisas Retrô</a>
+        <a onclick="abrirPolitica()">Política de Trocas</a>
         <a href="https://wa.me/5521986285970" target="_blank">Contato / Suporte</a>
     </div>
 
@@ -107,6 +108,11 @@
     <div id="grid-produtos" class="p-2 grid grid-cols-2 gap-2 text-black">
         <p class="text-center col-span-2 py-10">Carregando estoque...</p>
     </div>
+
+    <footer class="p-6 text-center text-gray-500 text-[10px] uppercase tracking-widest bg-white border-t mt-4">
+        <p>© 2026 Brazuka 1.1 - Qualidade Tailandesa</p>
+        <button onclick="togglePolitica()" class="mt-2 text-yellow-600 font-bold underline cursor-pointer">Ver Política de Trocas</button>
+    </footer>
 
     <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[100] hidden">
         <div class="absolute right-0 top-0 h-full w-[90%] bg-white shadow-xl flex flex-col text-black">
@@ -172,6 +178,13 @@
             <button onclick="toggleGaleria()" class="absolute -top-12 right-0 text-white text-4xl">&times;</button>
         </div>
     </div>
+
+    <div id="modal-politica" class="modal-galeria" onclick="fecharPolitica(event)">
+        <div class="galeria-content">
+            <img src="politica-trocas.png" class="galeria-img" alt="Política de Trocas Brazuka 1.1">
+            <button onclick="togglePolitica()" class="absolute -top-12 right-0 text-white text-4xl">&times;</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -186,6 +199,20 @@
         const o = document.getElementById('overlay');
         m.classList.toggle('active');
         o.style.display = m.classList.contains('active') ? 'block' : 'none';
+    }
+
+    // NOVAS FUNÇÕES DA POLÍTICA
+    function togglePolitica() {
+        document.getElementById('modal-politica').classList.toggle('active');
+    }
+
+    function abrirPolitica() {
+        toggleMenu(); 
+        togglePolitica(); 
+    }
+
+    function fecharPolitica(e) {
+        if(e.target.id === 'modal-politica') togglePolitica();
     }
 
     function toggleCepInput() {
@@ -367,7 +394,6 @@
     function moveSlide(n) { const s = document.querySelectorAll(".carousel-item"); let a = 0; s.forEach((img, i) => { if(img.classList.contains('active')){ a = i; img.classList.remove('active'); }}); let next = (a + n + s.length) % s.length; s[next].classList.add('active'); }
     setInterval(() => moveSlide(1), 5000);
 
-    // FUNÇÃO ATUALIZADA COM MENSAGEM DE PAGAMENTO
     async function enviarWhatsApp() {
         if (!carrinho.length) return;
         const entrega = document.getElementById('forma-entrega').value;
