@@ -110,25 +110,26 @@
         <p class="text-center col-span-2 py-10">Carregando estoque...</p>
     </div>
 
-    <section id="sobre-nos" class="p-6 bg-white border-t border-b mt-4">
-        <h2 class="text-xl font-black uppercase italic mb-4 border-l-4 border-yellow-600 pl-3">Sobre a Brazuka 1.1</h2>
-        <div class="text-gray-700 text-sm leading-relaxed space-y-4 text-justify">
+    <section id="sobre-nos" class="p-6 bg-white mt-4 border-t border-b">
+        <h2 class="text-lg font-black italic uppercase border-l-4 border-yellow-600 pl-3 mb-4">Sobre a Brazuka 1.1 - Camisas de Time</h2>
+        <div class="text-xs text-gray-700 leading-relaxed space-y-4">
             <p>Bem-vindo à <strong>Brazuka 1.1</strong>, sua loja especializada em camisas de futebol de alta qualidade. Nossa missão é levar a paixão pelo esporte até você, oferecendo mantos com o melhor padrão de acabamento do mercado, as famosas <strong>Tailandesas 1.1</strong>.</p>
             
-            <h3 class="font-bold text-black uppercase text-xs tracking-wider">Por que escolher a Brazuka 1.1?</h3>
-            
-            <ul class="space-y-3">
-                <li><i class="fas fa-check-circle text-yellow-600 mr-1"></i> <strong>Qualidade Premium:</strong> Trabalhamos apenas com versões que seguem os detalhes fiéis dos uniformes profissionais, garantindo durabilidade e conforto.</li>
-                <li><i class="fas fa-check-circle text-yellow-600 mr-1"></i> <strong>Variedade de Modelos:</strong> Aqui você encontra a Versão Torcedor, a Versão Jogador (ajuste atlético) e a Versão Feminina, com tabelas de medidas precisas.</li>
-                <li><i class="fas fa-check-circle text-yellow-600 mr-1"></i> <strong>Transparência e Confiança:</strong> Temos uma Política de Trocas clara. Em casos de erro da nossa equipe (tamanho ou modelo), a Brazuka 1.1 se responsabiliza totalmente pelo frete.</li>
-                <li><i class="fas fa-check-circle text-yellow-600 mr-1"></i> <strong>Atendimento Especializado:</strong> Seja para compra individual ou no Atacado, nossa equipe está pronta para te auxiliar na escolha do seu novo manto.</li>
-            </ul>
+            <div class="bg-gray-50 p-3 rounded border-l-2 border-gray-200">
+                <p class="font-bold text-black mb-2 uppercase italic text-[10px]">Por que escolher a Brazuka 1.1?</p>
+                <ul class="space-y-3">
+                    <li><i class="fas fa-star text-yellow-600 mr-1"></i> <strong>Qualidade Premium:</strong> Trabalhamos apenas com versões que seguem os detalhes fiéis dos uniformes profissionais, garantindo durabilidade e conforto.</li>
+                    <li><i class="fas fa-tshirt text-yellow-600 mr-1"></i> <strong>Variedade de Modelos:</strong> Aqui você encontra a Versão Torcedor, a Versão Jogador (com ajuste mais atlético) e a Versão Feminina, todas com tabelas de medidas precisas para o seu corpo.</li>
+                    <li><i class="fas fa-shield-alt text-yellow-600 mr-1"></i> <strong>Transparência e Confiança:</strong> Temos uma Política de Trocas clara e justa. Em casos de erro da nossa equipe (tamanho ou modelo), a Brazuka 1.1 se responsabiliza totalmente pelo frete.</li>
+                    <li><i class="fas fa-headset text-yellow-600 mr-1"></i> <strong>Atendimento Especializado:</strong> Seja para compra individual ou no Atacado, nossa equipe está pronta para te auxiliar na escolha do seu novo manto.</li>
+                </ul>
+            </div>
 
-            <p class="italic font-medium text-black border-t pt-4">Na Brazuka 1.1, não vendemos apenas camisas; entregamos a experiência de vestir as cores do seu time do coração com o respeito que o torcedor merece.</p>
+            <p class="italic text-black font-semibold border-t pt-3">Na Brazuka 1.1, não vendemos apenas camisas; entregamos a experiência de vestir as cores do seu time do coração com o respeito que o torcedor merece.</p>
         </div>
     </section>
 
-    <footer class="p-6 text-center text-gray-500 text-[10px] uppercase tracking-widest bg-white">
+    <footer class="p-6 text-center text-gray-500 text-[10px] uppercase tracking-widest bg-white border-t">
         <p>© 2026 Brazuka 1.1 - Qualidade Tailandesa</p>
         <button onclick="togglePolitica()" class="mt-2 text-yellow-600 font-bold underline cursor-pointer">Ver Política de Trocas</button>
     </footer>
@@ -173,6 +174,16 @@
                 <button id="btn-finalizar" onclick="enviarWhatsApp()" class="w-full bg-[#28a745] text-white py-4 rounded font-black uppercase text-sm shadow-lg flex items-center justify-center gap-2">
                     <i class="fab fa-whatsapp"></i> Finalizar Pedido
                 </button>
+
+                <div class="mt-4 flex flex-col items-center gap-2 opacity-70">
+                    <div class="flex gap-3 text-xl">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fas fa-barcode"></i>
+                        <i class="fab fa-pix text-green-600"></i>
+                    </div>
+                    <span class="text-[9px] font-bold text-gray-600 uppercase">Pagamento Seguro via Link (Cartão ou Pix)</span>
+                </div>
             </div>
         </div>
     </div>
@@ -190,7 +201,7 @@
 
     <div id="modal-politica" class="modal-galeria" onclick="fecharPolitica(event)">
         <div class="galeria-content">
-            <img src="politica-trocas.png" class="galeria-img" alt="Política de Trocas">
+            <img src="politica-trocas.png" class="galeria-img" alt="Política de Trocas Brazuka 1.1">
             <button onclick="togglePolitica()" class="absolute -top-12 right-0 text-white text-4xl">&times;</button>
         </div>
     </div>
@@ -210,9 +221,19 @@
         o.style.display = m.classList.contains('active') ? 'block' : 'none';
     }
 
-    function togglePolitica() { document.getElementById('modal-politica').classList.toggle('active'); }
-    function abrirPolitica() { toggleMenu(); togglePolitica(); }
-    function fecharPolitica(e) { if(e.target.id === 'modal-politica') togglePolitica(); }
+    // NOVAS FUNÇÕES DA POLÍTICA
+    function togglePolitica() {
+        document.getElementById('modal-politica').classList.toggle('active');
+    }
+
+    function abrirPolitica() {
+        toggleMenu(); 
+        togglePolitica(); 
+    }
+
+    function fecharPolitica(e) {
+        if(e.target.id === 'modal-politica') togglePolitica();
+    }
 
     function toggleCepInput() {
         const entrega = document.getElementById('forma-entrega').value;
@@ -239,7 +260,9 @@
             linhas.forEach(l => {
                 const c = l.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
                 if(c.length < 5) return;
+
                 const imagemLimpa = c[4].replace(/["\r\n]/g, '').trim();
+
                 const p = {
                     id: c[0].replace(/"/g, '').trim(), 
                     nome: c[1].replace(/"/g, '').trim(), 
@@ -250,8 +273,10 @@
                     categoria: c[9] ? c[9].replace(/"/g, '').trim().toLowerCase() : "todos"
                 };
                 produtosData.push(p);
+                
                 const fotosArray = p.imagem.split(',').map(f => f.trim()).filter(f => f !== "");
                 const primeiraFoto = fotosArray[0];
+                
                 let tams = "";
                 for (let tam in p.estoque) {
                     if (p.estoque[tam] > 0) tams += `<button onclick="selecionarTamanho(this, '${p.id}')" class="size-box">${tam}</button>`;
@@ -262,18 +287,21 @@
                         <img src="${primeiraFoto}" onclick="abrirGaleria('${p.id}')" class="w-full h-44 object-cover cursor-zoom-in" onerror="this.src='https://via.placeholder.com/300?text=Link+Incorreto'">
                         <h3 class="text-[10px] px-2 h-8 text-center font-bold mt-1 uppercase">${p.nome}</h3>
                         <span class="price-main">R$ ${p.preco.toFixed(2)}</span>
-                        <div class="atacado-box"><span class="text-[8px] text-yellow-700 font-bold uppercase">Atacado (4+ un): R$ ${p.atacado.toFixed(2)}</span></div>
+                        <div class="atacado-box">
+                            <span class="text-[8px] text-yellow-700 font-bold uppercase">Atacado (4+ un): R$ ${p.atacado.toFixed(2)}</span>
+                        </div>
                         <div class="flex gap-1 my-2">${tams}</div>
                         <button onclick="adicionarAoCarrinho('${p.id}')" class="w-[90%] btn-dourado py-2 rounded text-[11px] uppercase">Comprar</button>
                     </div>`;
             });
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Erro ao carregar planilha", e); }
     }
 
     function abrirGaleria(id) {
         const p = produtosData.find(x => x.id === id);
         if(!p) return;
         fotosAtuais = p.imagem.split(',').map(f => f.trim()).filter(f => f !== "");
+        if (fotosAtuais.length === 0) return;
         fotoIndice = 0;
         document.getElementById('img-ampliada').src = fotosAtuais[0];
         document.getElementById('modal-galeria').classList.add('active');
@@ -281,12 +309,18 @@
     }
 
     function mudarFotoGaleria(direcao) {
+        if(fotosAtuais.length <= 1) return;
         fotoIndice = (fotoIndice + direcao + fotosAtuais.length) % fotosAtuais.length;
         document.getElementById('img-ampliada').src = fotosAtuais[fotoIndice];
     }
 
-    function toggleGaleria() { document.getElementById('modal-galeria').classList.remove('active'); }
-    function fecharGaleria(e) { if(e.target.id === 'modal-galeria') toggleGaleria(); }
+    function fecharGaleria(e) {
+        if(e.target.id === 'modal-galeria') toggleGaleria();
+    }
+
+    function toggleGaleria() {
+        document.getElementById('modal-galeria').classList.toggle('active');
+    }
 
     function buscarNoGrid() {
         const termo = document.getElementById('input-busca').value.toLowerCase();
@@ -298,7 +332,9 @@
     function filtrarProdutos(cat) {
         toggleMenu();
         const titulo = document.getElementById('titulo-secao');
-        titulo.innerText = cat === 'todos' ? "Lançamentos" : cat.toUpperCase();
+        const busca = document.getElementById('input-busca');
+        busca.value = "";
+        titulo.innerText = cat === 'todos' ? "Lançamentos" : cat.replace(/-/g, ' ').toUpperCase();
         document.querySelectorAll('.item-produto').forEach(p => {
             const pCat = p.getAttribute('data-cat');
             p.style.display = (cat === 'todos' || pCat === cat) ? "flex" : "none";
@@ -315,9 +351,18 @@
         const p = produtosData.find(x => x.id === id);
         const t = selecoesTemporarias[id];
         if (!t) { alert("Escolha o tamanho!"); return; }
+        const estoqueDisponivel = p.estoque[t];
         const jaTemIdx = carrinho.findIndex(i => i.id === id && i.tamanho === t);
-        if (jaTemIdx !== -1) carrinho[jaTemIdx].qtd++;
-        else carrinho.push({ id, nome: p.nome, tamanho: t, precoVarejo: p.preco, precoAtacado: p.atacado, qtd: 1 });
+        const qtdNoCarrinho = jaTemIdx !== -1 ? carrinho[jaTemIdx].qtd : 0;
+        if (qtdNoCarrinho + 1 > estoqueDisponivel) {
+            alert(`Limite atingido! Temos apenas ${estoqueDisponivel} unidade(s) do tamanho ${t} em estoque.`);
+            return;
+        }
+        if (jaTemIdx !== -1) {
+            carrinho[jaTemIdx].qtd++;
+        } else {
+            carrinho.push({ id, nome: p.nome, tamanho: t, precoVarejo: p.preco, precoAtacado: p.atacado, qtd: 1 });
+        }
         document.getElementById('cart-count').innerText = carrinho.reduce((s, i) => s + i.qtd, 0);
         alert("Adicionado!");
     }
@@ -325,26 +370,42 @@
     function renderizarCarrinho() {
         const lista = document.getElementById('cart-items-list');
         const aviso = document.getElementById('aviso-atacado');
-        let totalF = 0, qtdT = carrinho.reduce((s, i) => s + i.qtd, 0);
+        const ecoRow = document.getElementById('economia-row');
+        let totalF = 0, totalV = 0;
+        let qtdT = carrinho.reduce((s, i) => s + i.qtd, 0);
         let eAtacado = qtdT >= 4;
         lista.innerHTML = carrinho.length === 0 ? '<p class="text-center text-gray-400 mt-10">Vazio</p>' : '';
         carrinho.forEach((item, idx) => {
             let precoU = eAtacado ? item.precoAtacado : item.precoVarejo;
             totalF += precoU * item.qtd;
+            totalV += item.precoVarejo * item.qtd;
             lista.innerHTML += `
                 <div class="flex justify-between items-center border-b pb-2 text-black">
-                    <div class="text-[11px]"><p class="font-bold uppercase">${item.nome}</p><p class="text-red-600 font-bold">TAM: ${item.tamanho} | R$ ${precoU.toFixed(2)}</p></div>
-                    <div class="flex items-center gap-2"><button onclick="alterarQtd(${idx},-1)" class="bg-gray-200 px-2">-</button><span>${item.qtd}</span><button onclick="alterarQtd(${idx},1)" class="bg-gray-200 px-2">+</button></div>
+                    <div class="text-[11px]">
+                        <p class="font-bold uppercase">${item.nome}</p>
+                        <p class="text-red-600 font-bold">TAM: ${item.tamanho} | R$ ${precoU.toFixed(2)}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="alterarQtd(${idx},-1)" class="bg-gray-200 px-2">-</button>
+                        <span>${item.qtd}</span>
+                        <button onclick="alterarQtd(${idx},1)" class="bg-gray-200 px-2">+</button>
+                    </div>
                 </div>`;
         });
-        aviso.classList.toggle('hidden', !eAtacado);
+        let eco = totalV - totalF;
+        if (eAtacado && eco > 0) { aviso.classList.remove('hidden'); ecoRow.classList.remove('hidden'); document.getElementById('economia-value').innerText = `R$ ${eco.toFixed(2)}`; }
+        else { aviso.classList.add('hidden'); ecoRow.classList.add('hidden'); }
         document.getElementById('subtotal-value').innerText = `R$ ${totalF.toFixed(2)}`;
         document.getElementById('cart-total-value').innerText = `R$ ${totalF.toFixed(2)}`;
     }
 
     function alterarQtd(i, d) { 
-        carrinho[i].qtd += d; 
-        if(carrinho[i].qtd <= 0) carrinho.splice(i,1); 
+        const item = carrinho[i];
+        const pOriginal = produtosData.find(x => x.id === item.id);
+        const estoqueMax = pOriginal.estoque[item.tamanho];
+        if (d > 0 && item.qtd + d > estoqueMax) { alert(`Desculpe, só temos ${estoqueMax} disponíveis.`); return; }
+        item.qtd += d; 
+        if(item.qtd <= 0) carrinho.splice(i,1); 
         renderizarCarrinho(); 
         document.getElementById('cart-count').innerText = carrinho.reduce((s, i) => s + i.qtd, 0); 
     }
@@ -358,6 +419,13 @@
         const entrega = document.getElementById('forma-entrega').value;
         const cep = document.getElementById('cep-destino').value;
         if (entrega === 'frete' && !cep) { alert("Informe o CEP!"); return; }
+        const btn = document.getElementById('btn-finalizar');
+        btn.innerText = "PROCESSANDO...";
+        btn.disabled = true;
+        try {
+            const dadosVenda = { itens: carrinho.map(i => ({ id: i.id, tamanho: i.tamanho, qtd: i.qtd })) };
+            await fetch(URL_SCRIPT_ESTOQUE, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(dadosVenda) });
+        } catch (e) { console.error(e); }
         let qtdT = carrinho.reduce((s, i) => s + i.qtd, 0);
         let eAtacado = qtdT >= 4, totalF = 0;
         let msg = `🚀 *PEDIDO BRAZUKA 1.1*\n\n`;
@@ -368,7 +436,9 @@
         });
         msg += `\n📦 *Entrega:* ${entrega === 'retirar' ? 'Retirar no Local' : 'Enviar por Frete (CEP: '+cep+')'}`;
         msg += `\n💰 *Total: R$ ${totalF.toFixed(2)}*`;
-        msg += `\n\n💳 *Pagamento via:* ( ) Pix  ( ) Cartão de Crédito\n\n_Pode gerar meu link de pagamento, por favor?_`;
+        msg += `\n\n💳 *Pagamento via:* ( ) Pix  ( ) Cartão de Crédito`;
+        msg += `\n\n_Pode gerar meu link de pagamento, por favor?_`;
+        
         window.open(`https://wa.me/5521986285970?text=${encodeURIComponent(msg)}`);
         location.reload();
     }
