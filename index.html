@@ -1,5 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brazuka 1.1 | Camisas Tailandesas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #000; font-family: sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        .site-container { background-color: #f3f3f3; max-width: 500px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 20px; }
+        
+        /* BANNER & HEADER */
+        .banner-header { width: 100%; height: 130px; overflow: hidden; position: relative; background-color: #000; display: flex; align-items: center; justify-content: center; }
+        .banner-img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.2); object-position: center; }
+        
+        /* MENU LATERAL */
+        .side-menu { position: fixed; top: 0; left: -100%; width: 80%; max-width: 300px; height: 100%; background-color: #111; z-index: 200; transition: 0.4s; padding-top: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+        .side-menu.active { left: 0; }
+        .side-menu a { display: block; padding: 15px 25px; color: #fff; text-transform: uppercase; font-size: 13px; font-weight: bold; border-bottom: 1px solid #222; text-decoration: none; cursor: pointer; }
+        .side-menu a:active { background-color: #bf953f; color: #000; }
+        .overlay-menu { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 150; }
+        .btn-menu-trigger { position: absolute; left: 15px; top: 15px; color: #fff; font-size: 22px; cursor: pointer; z-index: 60; background: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 5px; }
+
+        /* CARROSSEL & CARDS */
+        .carousel { position: relative; width: 100%; height: 300px; overflow: hidden; background-color: #000; }
+        .carousel-item { display: none; width: 100%; height: 100%; object-fit: cover; }
+        .carousel-item.active { display: block; }
+        .card-artilheiro { background-color: #fff; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; padding-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .price-main { color: #333; font-size: 1.2rem; font-weight: 800; }
+        .atacado-box { border-top: 1px solid #d4af37; border-bottom: 1px solid #d4af37; width: 90%; margin: 5px 0; text-align: center; padding: 2px 0; }
+        .btn-dourado { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); color: #000; border: none; font-weight: 900; transition: 0.3s; cursor: pointer; }
+        
+        /* TAMANHOS */
+        .size-box { border: 1px solid #333; width: 28px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; cursor: pointer; background: white; color: black; }
+        .size-selected { background-color: #000 !important; color: #fff !important; }
+        .size-off { border: 1px solid #ddd !important; color: #ccc !important; position: relative; cursor: not-allowed !important; pointer-events: none; }
+        .size-off::after { content: ""; position: absolute; width: 100%; height: 1px; background: #ccc; transform: rotate(-45deg); }
+        
+        /* INPUTS */
+        .cep-input, .search-input, .select-input { border: 1px solid #ccc; padding: 8px; border-radius: 4px; width: 100%; font-size: 14px; outline: none; background: white; }
+        .cep-input:disabled { background-color: #eee; cursor: not-allowed; }
+        
+        /* MODAIS */
+        .modal-galeria { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 300; display: none; align-items: center; justify-content: center; }
+        .modal-galeria.active { display: flex; }
+        .galeria-content { width: 90%; max-width: 450px; position: relative; }
+        .galeria-img { width: 100%; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5); max-height: 80vh; object-fit: contain; }
+        .galeria-nav { position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; transform: translateY(-50%); pointer-events: none; }
+        .btn-nav-galeria { background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; pointer-events: auto; font-size: 20px; border: 1px solid rgba(255,255,255,0.3); }
+
+        /* WHATSAPP FLUTUANTE */
+        .btn-whatsapp-fixo { position: fixed; bottom: 20px; right: 20px; background-color: #25d366; color: #fff; width: 60px; height: 60px; border-radius: 50px; text-align: center; font-size: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.3); z-index: 90; display: flex; align-items: center; justify-content: center; animation: pulse-green 2s infinite; text-decoration: none; }
+        @keyframes pulse-green { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
+    </style>
+</head>
+<body>
+
+<div class="site-container">
+    <div id="overlay" class="overlay-menu" onclick="toggleMenu()"></div>
+    
+    <div id="sideMenu" class="side-menu">
+        <div class="px-6 py-4 border-b border-yellow-600 mb-2">
+            <h3 class="text-white font-black uppercase text-lg italic">Brazuka 1.1</h3>
+        </div>
+        <a onclick="filtrarProdutos('todos')">Início / Todos</a>
+        <a onclick="filtrarProdutos('torcedor')">Versão Torcedor</a>
+        <a onclick="filtrarProdutos('jogador')">Versão Jogador</a>
+        <a onclick="filtrarProdutos('feminina')">Camisas Femininas</a>
+        <a onclick="filtrarProdutos('selecoes')">Seleções</a>
+        <a onclick="filtrarProdutos('retro')">Camisas Retrô</a>
+        <a href="#sobre-nos" onclick="toggleMenu()">Sobre Nós</a>
+        <a onclick="abrirPolitica()">Política de Trocas</a>
+        <a href="https://wa.me/5521986285970" target="_blank">Contato / Suporte</a>
+    </div>
+
+    <a href="https://wa.me/5521986285970?text=Olá! Gostaria de tirar uma dúvida." target="_blank" class="btn-whatsapp-fixo">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <header class="banner-header sticky top-0 z-50 border-b border-yellow-600 shadow-xl">
+        <div class="btn-menu-trigger" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+        <img src="banner-topo.png" alt="Brazuka 1.1" class="banner-img">
+        <button onclick="toggleCart()" class="absolute right-3 top-3 bg-black/60 p-2 rounded-full border border-white/20">
+            <i class="fas fa-shopping-cart text-xl text-white"></i>
+            <span id="cart-count" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded-full px-1.5 py-0.5 font-bold">0</span>
+        </button>
+    </header>
+
+    <div class="carousel">
+        <img src="banner1.jpg" class="carousel-item active" alt="Promoção 1">
+        <img src="banner2.jpg" class="carousel-item" alt="Promoção 2">
+        <img src="banner3.jpg" class="carousel-item" alt="Promoção 3">
+        <button onclick="moveSlide(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full text-xs">❮</button>
+        <button onclick="moveSlide(1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full text-xs">❯</button>
+    </div>
+
+    <div class="p-3 bg-white border-b">
+        <div class="relative">
+            <input type="text" id="input-busca" onkeyup="buscarNoGrid()" placeholder="Buscar camisa..." class="search-input pl-10">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        </div>
+    </div>
+
+    <h2 id="titulo-secao" class="bg-black text-white text-center py-2 text-sm font-bold uppercase tracking-widest border-t border-yellow-600 shadow-md">Lançamentos</h2>
+    
+    <div id="grid-produtos" class="p-2 grid grid-cols-2 gap-2 text-black">
+        <p class="text-center col-span-2 py-10">Carregando estoque...</p>
+    </div>
+
+    <section id="sobre-nos" class="p-6 bg-white mt-4 border-t border-b">
+        <h2 class="text-lg font-black italic uppercase border-l-4 border-yellow-600 pl-3 mb-4">Sobre a Brazuka 1.1 - Camisas de Time</h2>
+        <div class="text-xs text-gray-700 leading-relaxed space-y-4">
+            <p>Bem-vindo à <strong>Brazuka 1.1</strong>, sua loja especializada em camisas de futebol de alta qualidade. Nossa missão é levar a paixão pelo esporte até você, oferecendo mantos com o melhor padrão de acabamento do mercado, as famosas <strong>Tailandesas 1.1</strong>.</p>
+            
+            <div class="bg-gray-50 p-3 rounded border-l-2 border-gray-200">
+                <p class="font-bold text-black mb-2 uppercase italic text-[10px]">Por que escolher a Brazuka 1.1?</p>
+                <ul class="space-y-3">
+                    <li><i class="fas fa-star text-yellow-600 mr-1"></i> <strong>Qualidade Premium:</strong> Trabalhamos apenas com versões que seguem os detalhes fiéis dos uniformes profissionais, garantindo durabilidade e conforto.</li>
+                    <li><i class="fas fa-tshirt text-yellow-600 mr-1"></i> <strong>Variedade de Modelos:</strong> Aqui você encontra a Versão Torcedor, a Versão Jogador (com ajuste mais atlético) e a Versão Feminina, todas com tabelas de medidas precisas para o seu corpo.</li>
+                    <li><i class="fas fa-shield-alt text-yellow-600 mr-1"></i> <strong>Transparência e Confiança:</strong> Temos uma Política de Trocas clara e justa. Em casos de erro da nossa equipe (tamanho ou modelo), a Brazuka 1.1 se responsabiliza totalmente pelo frete.</li>
+                    <li><i class="fas fa-headset text-yellow-600 mr-1"></i> <strong>Atendimento Especializado:</strong> Seja para compra individual ou no Atacado, nossa equipe está pronta para te auxiliar na escolha do seu novo manto.</li>
+                </ul>
+            </div>
+
+            <p class="italic text-black font-semibold border-t pt-3">Na Brazuka 1.1, não vendemos apenas camisas; entregamos a experiência de vestir as cores do seu time do coração com o respeito que o torcedor merece.</p>
+        </div>
+    </section>
+
+    <footer class="p-6 text-center text-gray-500 text-[10px] uppercase tracking-widest bg-white border-t">
+        <p>© 2026 Brazuka 1.1 - Qualidade Tailandesa</p>
+        <button onclick="togglePolitica()" class="mt-2 text-yellow-600 font-bold underline cursor-pointer">Ver Política de Trocas</button>
+    </footer>
+
+    <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[100] hidden">
+        <div class="absolute right-0 top-0 h-full w-[90%] bg-white shadow-xl flex flex-col text-black">
+            <div class="p-4 bg-[#333] text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase tracking-tighter italic">🛒 Meu Carrinho</h2>
+                <button onclick="toggleCart()" class="text-3xl">&times;</button>
+            </div>
+            <div id="cart-items-list" class="flex-1 overflow-y-auto p-4 space-y-6"></div>
+            
+            <div class="p-4 bg-gray-100 border-t border-b space-y-3">
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-gray-500 mb-1 block">Como deseja receber?</label>
+                    <select id="forma-entrega" class="select-input" onchange="toggleCepInput()">
+                        <option value="frete">Enviar para meu endereço</option>
+                        <option value="retirar">Retirar no local</option>
+                    </select>
+                </div>
+                <div id="campo-cep">
+                    <label class="text-[10px] font-bold uppercase text-gray-500 mb-1 block">Seu CEP:</label>
+                    <input type="text" id="cep-destino" placeholder="00000-000" class="cep-input" maxlength="9">
+                </div>
+            </div>
+
+            <div class="p-4 bg-gray-50">
+                <div id="aviso-atacado" class="text-[10px] text-center font-bold text-green-700 mb-2 hidden">🔥 MODO ATACADO ATIVADO!</div>
+                <div class="flex justify-between text-xs text-gray-500 mb-1">
+                    <span>Subtotal:</span>
+                    <span id="subtotal-value">R$ 0,00</span>
+                </div>
+                <div id="economia-row" class="flex justify-between text-xs text-green-600 font-bold mb-1 hidden">
+                    <span>Você economizou:</span>
+                    <span id="economia-value">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between font-black text-lg mb-4 border-t pt-2">
+                    <span>TOTAL:</span>
+                    <span id="cart-total-value">R$ 0,00</span>
+                </div>
+                
+                <button id="btn-finalizar" onclick="enviarWhatsApp()" class="w-full bg-[#28a745] text-white py-4 rounded font-black uppercase text-sm shadow-lg flex items-center justify-center gap-2">
+                    <i class="fab fa-whatsapp"></i> Finalizar Pedido
+                </button>
+
+                <div class="mt-4 flex flex-col items-center gap-2 opacity-70">
+                    <div class="flex gap-3 text-xl">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fas fa-barcode"></i>
+                        <i class="fab fa-pix text-green-600"></i>
+                    </div>
+                    <span class="text-[9px] font-bold text-gray-600 uppercase">Pagamento Seguro via Link (Cartão ou Pix)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-galeria" class="modal-galeria" onclick="fecharGaleria(event)">
+        <div class="galeria-content">
+            <img id="img-ampliada" src="" class="galeria-img">
+            <div id="nav-galeria" class="galeria-nav">
+                <button onclick="mudarFotoGaleria(-1)" class="btn-nav-galeria">❮</button>
+                <button onclick="mudarFotoGaleria(1)" class="btn-nav-galeria">❯</button>
+            </div>
+            <button onclick="toggleGaleria()" class="absolute -top-12 right-0 text-white text-4xl">&times;</button>
+        </div>
+    </div>
+
+    <div id="modal-politica" class="modal-galeria" onclick="fecharPolitica(event)">
+        <div class="galeria-content">
+            <img src="politica-trocas.png" class="galeria-img" alt="Política de Trocas Brazuka 1.1">
+            <button onclick="togglePolitica()" class="absolute -top-12 right-0 text-white text-4xl">&times;</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    const URL_SCRIPT_ESTOQUE = "https://script.google.com/macros/s/AKfycbxPSfcIHthWXzR9h1auu2WGQ1xUqwDSHVaZ4aQJXWGW14LTpNSKVngz3BZ1r6x8mq33/exec";
+    const URL_SCRIPT_ESTOQUE = "https://script.google.com/macros/s/AKfycbw07ch2ZqT7cPfs-3_rNcTo1MAzScrHSVueFeER4Zx6-qFy9KROi07qOjmRwysOzQiy/exec";
     const linkPlanilha = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR0m7HN1ePfdwVgr0aaFfYjjFv6r1zag8fZ4x5Ih8XKPLjEIe97nRHqU-hWKWfBEksbOH5Mw8u2Y6VZ/pub?output=csv";
     
     let produtosData = [], carrinho = [], selecoesTemporarias = {};
@@ -12,6 +221,7 @@
         o.style.display = m.classList.contains('active') ? 'block' : 'none';
     }
 
+    // NOVAS FUNÇÕES DA POLÍTICA
     function togglePolitica() {
         document.getElementById('modal-politica').classList.toggle('active');
     }
@@ -38,15 +248,12 @@
         }
     }
 
-    // ALTERAÇÃO SOLICITADA: FUNÇÃO DE CARREGAMENTO CORRIGIDA
     async function carregarProdutos() {
         try {
             const r = await fetch(linkPlanilha);
             const t = await r.text();
             const linhas = t.split('\n').slice(1);
             const grid = document.getElementById('grid-produtos');
-            
-            // Limpa o "Carregando estoque..." assim que recebe os dados
             grid.innerHTML = "";
             produtosData = []; 
 
@@ -62,9 +269,8 @@
                     preco: parseFloat(c[2]), 
                     atacado: parseFloat(c[3]), 
                     imagem: imagemLimpa,
-                    // Índices: 5=P, 6=M, 7=G, 8=GG, 9=2GG, 10=Categoria
-                    estoque: { P: parseInt(c[5])||0, M: parseInt(c[6])||0, G: parseInt(c[7])||0, GG: parseInt(c[8])||0, "2GG": parseInt(c[9])||0 },
-                    categoria: c[10] ? c[10].replace(/"/g, '').trim().toLowerCase() : "todos"
+                    estoque: { P: parseInt(c[5])||0, M: parseInt(c[6])||0, G: parseInt(c[7])||0, GG: parseInt(c[8])||0 },
+                    categoria: c[9] ? c[9].replace(/"/g, '').trim().toLowerCase() : "todos"
                 };
                 produtosData.push(p);
                 
@@ -84,18 +290,11 @@
                         <div class="atacado-box">
                             <span class="text-[8px] text-yellow-700 font-bold uppercase">Atacado (4+ un): R$ ${p.atacado.toFixed(2)}</span>
                         </div>
-                        <div class="flex flex-wrap justify-center gap-1 my-2 px-1">${tams}</div>
+                        <div class="flex gap-1 my-2">${tams}</div>
                         <button onclick="adicionarAoCarrinho('${p.id}')" class="w-[90%] btn-dourado py-2 rounded text-[11px] uppercase">Comprar</button>
                     </div>`;
             });
-
-            // Garante que o filtro inicial mostre os produtos carregados
-            filtrarProdutos('todos');
-
-        } catch (e) { 
-            console.error("Erro ao carregar planilha", e);
-            document.getElementById('grid-produtos').innerHTML = `<p class="text-center col-span-2 py-10">Erro ao carregar o estoque. Tente atualizar a página.</p>`;
-        }
+        } catch (e) { console.error("Erro ao carregar planilha", e); }
     }
 
     function abrirGaleria(id) {
@@ -131,9 +330,7 @@
     }
 
     function filtrarProdutos(cat) {
-        // Verifica se o menu está aberto antes de tentar fechar (evita erro no carregamento inicial)
-        if(document.getElementById('sideMenu').classList.contains('active')) toggleMenu();
-        
+        toggleMenu();
         const titulo = document.getElementById('titulo-secao');
         const busca = document.getElementById('input-busca');
         busca.value = "";
@@ -246,6 +443,7 @@
         location.reload();
     }
 
-    // Inicialização
     carregarProdutos();
 </script>
+</body>
+</html>
