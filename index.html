@@ -269,8 +269,8 @@
                     preco: parseFloat(c[2]), 
                     atacado: parseFloat(c[3]), 
                     imagem: imagemLimpa,
-                    estoque: { P: parseInt(c[5])||0, M: parseInt(c[6])||0, G: parseInt(c[7])||0, GG: parseInt(c[8])||0 },
-                    categoria: c[9] ? c[9].replace(/"/g, '').trim().toLowerCase() : "todos"
+                    estoque: { P: parseInt(c[5])||0, M: parseInt(c[6])||0, G: parseInt(c[7])||0, GG: parseInt(c[8])||0, 2GG: parseInt(c[9])||0 },
+                    categoria: c[10] ? c[10].replace(/"/g, '').trim().toLowerCase() : "todos"
                 };
                 produtosData.push(p);
                 
