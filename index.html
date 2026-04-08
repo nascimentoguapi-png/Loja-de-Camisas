@@ -154,7 +154,7 @@
                     </div>
                     <div>
                         <label class="text-[10px] font-bold uppercase text-gray-500 mb-1 block">Pagamento:</label>
-                        <select id="forma-pagamento" class="select-input">
+                        <select id="forma-pagamento" class="select-input" onchange="renderizarCarrinho()">
                             <option value="Pix">Pix (Melhor Preço)</option>
                             <option value="Cartão de Crédito">Cartão de Crédito</option>
                         </select>
@@ -286,7 +286,6 @@
                         "2GG": parseInt(c[9])||0 
                     },
                     categoria: c[10] ? c[10].replace(/"/g, '').trim().toLowerCase() : "todos",
-                    // Novas colunas para preço PIX (Ajustadas para índices 11 e 12 da planilha)
                     precoPix: parseFloat(c[11]) || parseFloat(c[2]),
                     atacadoPix: parseFloat(c[12]) || parseFloat(c[3])
                 };
@@ -385,8 +384,7 @@
         if (jaTemIdx !== -1) {
             carrinho[jaTemIdx].qtd++;
         } else {
-            // Agora salvamos os preços PIX no carrinho
-            carrinho.push({ id, nome: p.nome, tamanho: t, precoVarejo: p.precoPix, precoAtacado: p.atacadoPix, qtd: 1 });
+            carrinho.push({ id, nome: p.nome, tamanho: t, qtd: 1 });
         }
         document.getElementById('cart-count').innerText = carrinho.reduce((s, i) => s + i.qtd, 0);
         alert("Adicionado!");
@@ -395,31 +393,44 @@
     function renderizarCarrinho() {
         const lista = document.getElementById('cart-items-list');
         const aviso = document.getElementById('aviso-atacado');
-        const ecoRow = document.getElementById('economia-row');
-        let totalF = 0, totalV = 0;
+        const formaPagamento = document.getElementById('forma-pagamento').value;
+        
+        let totalF = 0;
         let qtdT = carrinho.reduce((s, i) => s + i.qtd, 0);
         let eAtacado = qtdT >= 4;
+
         lista.innerHTML = carrinho.length === 0 ? '<p class="text-center text-gray-400 mt-10">Vazio</p>' : '';
+
         carrinho.forEach((item, idx) => {
-            let precoU = eAtacado ? item.precoAtacado : item.precoVarejo;
+            const pData = produtosData.find(x => x.id === item.id);
+            let precoU;
+
+            if (formaPagamento === 'Pix') {
+                precoU = eAtacado ? pData.atacadoPix : pData.precoPix;
+            } else {
+                precoU = eAtacado ? pData.atacado : pData.preco;
+            }
+
             totalF += precoU * item.qtd;
-            totalV += item.precoVarejo * item.qtd; // Para cálculo de economia se necessário
+
             lista.innerHTML += `
                 <div class="flex justify-between items-center border-b pb-2 text-black">
                     <div class="text-[11px]">
                         <p class="font-bold uppercase">${item.nome}</p>
-                        <p class="text-green-600 font-bold">TAM: ${item.tamanho} | Pix: R$ ${precoU.toFixed(2)}</p>
+                        <p class="${formaPagamento === 'Pix' ? 'text-green-600' : 'text-blue-600'} font-bold">
+                            TAM: ${item.tamanho} | R$ ${precoU.toFixed(2)} ${formaPagamento === 'Pix' ? '(Pix)' : ''}
+                        </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="alterarQtd(${idx},-1)" class="bg-gray-200 px-2">-</button>
-                        <span>${item.qtd}</span>
-                        <button onclick="alterarQtd(${idx},1)" class="bg-gray-200 px-2">+</button>
+                        <button onclick="alterarQtd(${idx},-1)" class="bg-gray-200 px-2 rounded">-</button>
+                        <span class="font-bold">${item.qtd}</span>
+                        <button onclick="alterarQtd(${idx},1)" class="bg-gray-200 px-2 rounded">+</button>
                     </div>
                 </div>`;
         });
         
-        if (eAtacado) { aviso.classList.remove('hidden'); }
-        else { aviso.classList.add('hidden'); }
+        if (eAtacado) aviso.classList.remove('hidden');
+        else aviso.classList.add('hidden');
         
         document.getElementById('subtotal-value').innerText = `R$ ${totalF.toFixed(2)}`;
         document.getElementById('cart-total-value').innerText = `R$ ${totalF.toFixed(2)}`;
@@ -461,10 +472,18 @@
         let eAtacado = qtdT >= 4, totalF = 0;
         let msg = `🚀 *PEDIDO BRAZUKA 1.1*\n\n`;
         
-        carrinho.forEach(i => {
-            let p = eAtacado ? i.precoAtacado : i.precoVarejo;
-            totalF += p * i.qtd;
-            msg += `✅ ${i.qtd}x ${i.nome} (${i.tamanho}) - R$ ${p.toFixed(2)}\n`;
+        carrinho.forEach(item => {
+            const pData = produtosData.find(x => x.id === item.id);
+            let preco;
+            
+            if (pagamento === 'Pix') {
+                preco = eAtacado ? pData.atacadoPix : pData.precoPix;
+            } else {
+                preco = eAtacado ? pData.atacado : pData.preco;
+            }
+
+            totalF += preco * item.qtd;
+            msg += `✅ ${item.qtd}x ${item.nome} (${item.tamanho}) - R$ ${preco.toFixed(2)}\n`;
         });
         
         msg += `\n📦 *Entrega:* ${entrega === 'retirar' ? 'Retirar no Local' : 'Enviar por Frete (CEP: '+cep+')'}`;
