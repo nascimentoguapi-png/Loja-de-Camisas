@@ -27,8 +27,9 @@
         .carousel-item { display: none; width: 100%; height: 100%; object-fit: cover; }
         .carousel-item.active { display: block; }
         .card-artilheiro { background-color: #fff; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; align-items: center; padding-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .price-main { color: #333; font-size: 1.2rem; font-weight: 800; }
-        .atacado-box { border-top: 1px solid #d4af37; border-bottom: 1px solid #d4af37; width: 90%; margin: 5px 0; text-align: center; padding: 2px 0; }
+        .price-main { color: #16a34a; font-size: 1.1rem; font-weight: 800; }
+        .price-old { color: #999; font-size: 0.8rem; text-decoration: line-through; }
+        .atacado-box { border-top: 1px solid #d4af37; border-bottom: 1px solid #d4af37; width: 90%; margin: 5px 0; text-align: center; padding: 2px 0; background-color: #fffbeb; }
         .btn-dourado { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); color: #000; border: none; font-weight: 900; transition: 0.3s; cursor: pointer; }
         
         /* TAMANHOS */
@@ -284,7 +285,10 @@
                         GG: parseInt(c[8])||0,
                         "2GG": parseInt(c[9])||0 
                     },
-                    categoria: c[10] ? c[10].replace(/"/g, '').trim().toLowerCase() : "todos"
+                    categoria: c[10] ? c[10].replace(/"/g, '').trim().toLowerCase() : "todos",
+                    // Novas colunas para preço PIX (Ajustadas para índices 11 e 12 da planilha)
+                    precoPix: parseFloat(c[11]) || parseFloat(c[2]),
+                    atacadoPix: parseFloat(c[12]) || parseFloat(c[3])
                 };
                 produtosData.push(p);
                 
@@ -300,9 +304,15 @@
                     <div class="card-artilheiro item-produto" data-nome="${p.nome.toLowerCase()}" data-cat="${p.categoria}" id="${p.id}">
                         <img src="${primeiraFoto}" onclick="abrirGaleria('${p.id}')" class="w-full h-44 object-cover cursor-zoom-in" onerror="this.src='https://via.placeholder.com/300?text=Link+Incorreto'">
                         <h3 class="text-[10px] px-2 h-8 text-center font-bold mt-1 uppercase">${p.nome}</h3>
-                        <span class="price-main">R$ ${p.preco.toFixed(2)}</span>
+                        
+                        <div class="flex flex-col items-center">
+                            <span class="price-old">R$ ${p.preco.toFixed(2)}</span>
+                            <span class="price-main">R$ ${p.precoPix.toFixed(2)} <small class="text-[8px] uppercase">no pix</small></span>
+                        </div>
+
                         <div class="atacado-box">
-                            <span class="text-[8px] text-yellow-700 font-bold uppercase">Atacado (4+ un): R$ ${p.atacado.toFixed(2)}</span>
+                            <span class="text-[8px] text-yellow-700 font-bold uppercase block">Atacado (4+ un)</span>
+                            <span class="text-[10px] font-black">R$ ${p.atacadoPix.toFixed(2)} <small class="text-[8px]">no pix</small></span>
                         </div>
                         <div class="flex gap-1 my-2">${tams}</div>
                         <button onclick="adicionarAoCarrinho('${p.id}')" class="w-[90%] btn-dourado py-2 rounded text-[11px] uppercase">Comprar</button>
@@ -375,7 +385,8 @@
         if (jaTemIdx !== -1) {
             carrinho[jaTemIdx].qtd++;
         } else {
-            carrinho.push({ id, nome: p.nome, tamanho: t, precoVarejo: p.preco, precoAtacado: p.atacado, qtd: 1 });
+            // Agora salvamos os preços PIX no carrinho
+            carrinho.push({ id, nome: p.nome, tamanho: t, precoVarejo: p.precoPix, precoAtacado: p.atacadoPix, qtd: 1 });
         }
         document.getElementById('cart-count').innerText = carrinho.reduce((s, i) => s + i.qtd, 0);
         alert("Adicionado!");
@@ -392,12 +403,12 @@
         carrinho.forEach((item, idx) => {
             let precoU = eAtacado ? item.precoAtacado : item.precoVarejo;
             totalF += precoU * item.qtd;
-            totalV += item.precoVarejo * item.qtd;
+            totalV += item.precoVarejo * item.qtd; // Para cálculo de economia se necessário
             lista.innerHTML += `
                 <div class="flex justify-between items-center border-b pb-2 text-black">
                     <div class="text-[11px]">
                         <p class="font-bold uppercase">${item.nome}</p>
-                        <p class="text-red-600 font-bold">TAM: ${item.tamanho} | R$ ${precoU.toFixed(2)}</p>
+                        <p class="text-green-600 font-bold">TAM: ${item.tamanho} | Pix: R$ ${precoU.toFixed(2)}</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick="alterarQtd(${idx},-1)" class="bg-gray-200 px-2">-</button>
@@ -406,9 +417,10 @@
                     </div>
                 </div>`;
         });
-        let eco = totalV - totalF;
-        if (eAtacado && eco > 0) { aviso.classList.remove('hidden'); ecoRow.classList.remove('hidden'); document.getElementById('economia-value').innerText = `R$ ${eco.toFixed(2)}`; }
-        else { aviso.classList.add('hidden'); ecoRow.classList.add('hidden'); }
+        
+        if (eAtacado) { aviso.classList.remove('hidden'); }
+        else { aviso.classList.add('hidden'); }
+        
         document.getElementById('subtotal-value').innerText = `R$ ${totalF.toFixed(2)}`;
         document.getElementById('cart-total-value').innerText = `R$ ${totalF.toFixed(2)}`;
     }
